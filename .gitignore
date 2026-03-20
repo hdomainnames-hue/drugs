@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local db connection (do not commit)
+/config/prisma.env
+
 # vercel
 .vercel
 
