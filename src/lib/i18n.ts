@@ -35,10 +35,50 @@ const dict = {
     noSimilar: "لا توجد أدوية مشابهة مسجلة.",
     langToEnglish: "الإنجليزية",
     langToArabic: "العربية",
+    idLabel: "المعرّف",
     homeNav: "الرئيسية",
     drugsNav: "الأدوية",
     themeLight: "الوضع النهاري",
     themeDark: "الوضع الليلي",
+
+    homeHeroTitle: "ابحث عن الدواء بسرعة وبثقة",
+    homeHeroBody:
+      "معلومات دوائية منظمة وسهلة التصفح. المحتوى للتثقيف العام ولا يغني عن الاستشارة الطبية.",
+    homeSearchLabel: "بحث سريع",
+    homeSearchCta: "ابحث الآن",
+    homeStatsTitle: "أرقام من قاعدة البيانات",
+    homeTotalDrugs: "إجمالي الأدوية",
+    homeLatestArticles: "أحدث المقالات",
+    homeLatestFaqs: "أسئلة شائعة",
+    viewAll: "عرض الكل",
+    homeNoArticles: "لا توجد مقالات منشورة بعد.",
+    homeNoFaqs: "لا توجد أسئلة شائعة بعد.",
+    homeBrowseAllDrugs: "تصفح جميع الأدوية",
+
+    footerAbout: "من نحن",
+    footerContact: "اتصل بنا",
+    footerPrivacy: "سياسة الخصوصية",
+    footerTerms: "الشروط والأحكام",
+    footerMedical: "إخلاء مسؤولية طبي",
+    footerRights: "جميع الحقوق محفوظة",
+
+    aboutTitle: "من نحن",
+    aboutBody:
+      "نحن موقع معلومات دوائية يهدف لتسهيل البحث والوصول إلى بيانات منظمة عن الأدوية. المحتوى للتثقيف العام ولا يغني عن استشارة مختص.",
+    contactTitle: "اتصل بنا",
+    contactBody:
+      "للتواصل بخصوص محتوى الموقع أو الإبلاغ عن خطأ، يمكنك مراسلتنا عبر البريد الإلكتروني المذكور في إعدادات الموقع لاحقًا.",
+    privacyTitle: "سياسة الخصوصية",
+    privacyBody:
+      "نحترم خصوصيتك. قد نستخدم ملفات تعريف الارتباط لتحسين التجربة وقياس الأداء. لا نبيع بياناتك الشخصية.",
+    termsTitle: "الشروط والأحكام",
+    termsBody:
+      "باستخدامك للموقع فإنك توافق على أن المحتوى للتثقيف العام فقط. لا نتحمل مسؤولية قرارات علاجية دون الرجوع لمختص.",
+    medicalPageTitle: "إخلاء المسؤولية الطبية",
+    medicalPageBody:
+      "المحتوى في هذا الموقع للتثقيف العام ولا يُعد نصيحة طبية. استشر الطبيب/الصيدلي قبل اتخاذ أي قرار علاجي.",
+    articlesTitle: "المقالات",
+    faqTitle: "الأسئلة الشائعة",
   },
   en: {
     siteName: "Drugs",
@@ -69,11 +109,51 @@ const dict = {
     similarDrugs: "Similar drugs",
     noSimilar: "No similar drugs recorded.",
     langToEnglish: "English",
-    langToArabic: "العربية",
+    langToArabic: "Arabic",
+    idLabel: "ID",
     homeNav: "Home",
     drugsNav: "Drugs",
     themeLight: "Light mode",
     themeDark: "Dark mode",
+
+    homeHeroTitle: "Search drugs quickly and confidently",
+    homeHeroBody:
+      "Organized drug information with a clean browsing experience. Content is for education and does not replace medical advice.",
+    homeSearchLabel: "Quick search",
+    homeSearchCta: "Search",
+    homeStatsTitle: "Database stats",
+    homeTotalDrugs: "Total drugs",
+    homeLatestArticles: "Latest articles",
+    homeLatestFaqs: "FAQs",
+    viewAll: "View all",
+    homeNoArticles: "No published articles yet.",
+    homeNoFaqs: "No FAQs yet.",
+    homeBrowseAllDrugs: "Browse all drugs",
+
+    footerAbout: "About",
+    footerContact: "Contact",
+    footerPrivacy: "Privacy",
+    footerTerms: "Terms",
+    footerMedical: "Medical disclaimer",
+    footerRights: "All rights reserved",
+
+    aboutTitle: "About",
+    aboutBody:
+      "We provide an organized drug information experience to help you browse and search. Content is for education only and does not replace professional medical advice.",
+    contactTitle: "Contact",
+    contactBody:
+      "For content inquiries or to report an issue, please contact us via the site email (to be configured).",
+    privacyTitle: "Privacy Policy",
+    privacyBody:
+      "We respect your privacy. We may use cookies for analytics and improving the experience. We do not sell personal data.",
+    termsTitle: "Terms & Conditions",
+    termsBody:
+      "By using this site you agree the content is for education only. Do not make treatment decisions without consulting a professional.",
+    medicalPageTitle: "Medical Disclaimer",
+    medicalPageBody:
+      "The content on this site is for general education and is not medical advice. Consult a doctor/pharmacist before making treatment decisions.",
+    articlesTitle: "Articles",
+    faqTitle: "FAQ",
   },
 } as const;
 

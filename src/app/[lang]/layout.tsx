@@ -50,6 +50,57 @@ export default async function LangLayout({
 
       <main className="flex flex-1 flex-col">{children}</main>
 
+      <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="mx-auto w-full max-w-5xl px-4 py-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "siteName")}</div>
+              <div className="text-sm leading-7 text-zinc-600 dark:text-zinc-400">{t(lang, "homeSubtitle")}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <Link
+                href={`/${lang}/about`}
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                {t(lang, "footerAbout")}
+              </Link>
+              <Link
+                href={`/${lang}/contact`}
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                {t(lang, "footerContact")}
+              </Link>
+              <Link
+                href={`/${lang}/privacy`}
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                {t(lang, "footerPrivacy")}
+              </Link>
+              <Link
+                href={`/${lang}/terms`}
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                {t(lang, "footerTerms")}
+              </Link>
+              <Link
+                href={`/${lang}/medical-disclaimer`}
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                {t(lang, "footerMedical")}
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-2 border-t border-zinc-200 pt-6 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              © {new Date().getFullYear()} {t(lang, "siteName")} — {t(lang, "footerRights")}
+            </div>
+            <div className="text-zinc-500 dark:text-zinc-400">{t(lang, "medicalDisclaimerTitle")}</div>
+          </div>
+        </div>
+      </footer>
+
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
         <div className="mx-auto grid h-16 w-full max-w-5xl grid-cols-2 px-4">
           <Link

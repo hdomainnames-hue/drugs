@@ -95,7 +95,9 @@ export default async function DrugDetailPage({
               <div className="flex flex-col gap-1">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
                 <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">ID: {drug.remoteId}</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {t(lang, "idLabel")}: {drug.remoteId}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -105,11 +107,13 @@ export default async function DrugDetailPage({
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{drug.company || "-"}</div>
+                  <div className="mt-1 min-w-0 break-words text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                    {drug.company || "-"}
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                  <div className="mt-1 min-w-0 break-words text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
                     {drug.activeIngredient || "-"}
                   </div>
                 </div>
@@ -127,18 +131,22 @@ export default async function DrugDetailPage({
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.company || "-"}</div>
+                <div className="mt-1 min-w-0 break-words font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                  {drug.company || "-"}
+                </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.activeIngredient || "-"}</div>
+                <div className="mt-1 min-w-0 break-words font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                  {drug.activeIngredient || "-"}
+                </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
                 <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.price || "-"}</div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">ID</div>
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "idLabel")}</div>
                 <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.remoteId}</div>
               </div>
             </div>
