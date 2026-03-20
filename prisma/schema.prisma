@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Drug {
+  id             BigInt   @id @default(autoincrement())
+  remoteId       Int      @unique
+  url            String?
+  name           String
+  price          String?
+  company        String?
+  activeIngredient String?
+  description    String?
+  metaDescription String?
+  imageSourceUrl String?
+  imageLocalPath String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  similarFrom DrugSimilar[] @relation("DrugSimilarFrom")
+  similarTo   DrugSimilar[] @relation("DrugSimilarTo")
+
+  @@index([name])
+  @@index([company])
+  @@index([activeIngredient])
+}
+
+model DrugSimilar {
+  id         BigInt   @id @default(autoincrement())
+  fromDrugId BigInt
+  toDrugId   BigInt
+  createdAt  DateTime @default(now())
+
+  fromDrug Drug @relation("DrugSimilarFrom", fields: [fromDrugId], references: [id], onDelete: Cascade)
+  toDrug   Drug @relation("DrugSimilarTo", fields: [toDrugId], references: [id], onDelete: Cascade)
+
+  @@unique([fromDrugId, toDrugId])
+  @@index([toDrugId])
+}
+
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id          BigInt   @id @default(autoincrement())
+  slug        String   @unique
+  lang        String
+  title       String
+  excerpt     String?
+  content     String
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lang, publishedAt])
+}
+
+model Faq {
+  id        BigInt   @id @default(autoincrement())
+  lang      String
+  question  String
+  answer    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lang, order])
+}
