@@ -47,7 +47,6 @@ export default async function DrugDetailPage({
       company: true,
       activeIngredient: true,
       description: true,
-      url: true,
     },
   });
 
@@ -91,45 +90,70 @@ export default async function DrugDetailPage({
             </Link>
           </div>
 
-          <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">ID: {drug.remoteId}</div>
+              </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-zinc-700 dark:text-zinc-300 sm:grid-cols-2">
-              <div>
-                {t(lang, "price")}: {drug.price || "-"}
-              </div>
-              <div>
-                {t(lang, "company")}: {drug.company || "-"}
-              </div>
-              <div className="sm:col-span-2">
-                {t(lang, "activeIngredient")}: {drug.activeIngredient || "-"}
-              </div>
-            </div>
-
-            {drug.description ? (
-              <div className="mt-5">
-                <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "info")}</h2>
-                <div className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">
-                  {drug.description}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
+                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
+                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{drug.price || "-"}</div>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
+                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{drug.company || "-"}</div>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
+                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                    {drug.activeIngredient || "-"}
+                  </div>
                 </div>
               </div>
-            ) : null}
 
-            {drug.url ? (
-              <div className="mt-5 text-sm">
-                <a
-                  href={drug.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-zinc-700 underline hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                >
-                  {t(lang, "source")}
-                </a>
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                <div className="text-sm font-semibold">{t(lang, "medicalDisclaimerTitle")}</div>
+                <div className="mt-1 text-xs leading-6">{t(lang, "medicalDisclaimerBody")}</div>
               </div>
-            ) : null}
-          </div>
+            </div>
+          </section>
 
-          <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "basicInfo")}</h2>
+            <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.company || "-"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.activeIngredient || "-"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
+                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.price || "-"}</div>
+              </div>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">ID</div>
+                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.remoteId}</div>
+              </div>
+            </div>
+          </section>
+
+          {drug.description ? (
+            <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+              <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "description")}</h2>
+              <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+                {drug.description}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "similarDrugs")}</h2>
 
             {similar.length ? (
@@ -138,9 +162,11 @@ export default async function DrugDetailPage({
                   <Link
                     key={s.toDrug.remoteId}
                     href={`/${lang}/drug/${s.toDrug.remoteId}`}
-                    className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                    className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{s.toDrug.name}</div>
+                    <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                      {s.toDrug.name}
+                    </div>
                     <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
                       <div>
                         {t(lang, "company")}: {s.toDrug.company || "-"}
@@ -155,7 +181,7 @@ export default async function DrugDetailPage({
             ) : (
               <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{t(lang, "noSimilar")}</div>
             )}
-          </div>
+          </section>
         </div>
       </div>
     </div>
