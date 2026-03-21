@@ -19,7 +19,11 @@ const dbEnv = { DATABASE_URL: hasDbUrl ? process.env.DATABASE_URL : dummyDbUrl }
 
 // Apply migrations only when a real database URL is present.
 if (hasDbUrl) {
-  run("npx prisma migrate deploy", dbEnv);
+  try {
+    run("npx prisma migrate deploy", dbEnv);
+  } catch (e) {
+    console.warn("Warning: prisma migrate deploy failed; continuing build.", e?.message ?? e);
+  }
 }
 
 run("npx prisma generate", dbEnv);

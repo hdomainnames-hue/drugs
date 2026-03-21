@@ -80,7 +80,15 @@ export async function getOrTranslateFields(
         },
       });
       out[k] = translatedText;
-    } catch {
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("Gemini translation failed", {
+        entityType: r.entityType,
+        entityId: r.entityId,
+        field: r.field,
+        sourceHash: h,
+        error: msg,
+      });
       out[k] = t(lang, "translationPending");
     }
   }
