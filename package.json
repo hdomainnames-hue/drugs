@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:import": "node scripts/import-sqlite-to-postgres.mjs",
+    "db:seed": "node scripts/seed.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

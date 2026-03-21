@@ -72,7 +72,7 @@ export default async function Home({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "homeStatsTitle")}</div>
                 <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-                  {t(lang, "homeTotalDrugs")}: {totalDrugs.toLocaleString("en-US")}
+                  {t(lang, "homeTotalDrugs")}: {totalDrugs.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
                 </div>
               </div>
 

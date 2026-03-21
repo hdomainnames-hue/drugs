@@ -10,8 +10,6 @@ function toInt(v: string | undefined, fallback: number) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-export const dynamic = "force-dynamic";
-
 type DrugListItem = Prisma.DrugGetPayload<{
   select: {
     remoteId: true;
@@ -87,7 +85,7 @@ export default async function DrugsPage({
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-semibold tracking-tight">{t(lang, "drugsDbTitle")}</h1>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {t(lang, "totalResults")}: {total.toLocaleString("en-US")}
+                {t(lang, "totalResults")}: {total.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
               </p>
             </div>
 

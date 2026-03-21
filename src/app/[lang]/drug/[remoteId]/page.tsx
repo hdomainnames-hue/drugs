@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
-
-export const dynamic = "force-dynamic";
 
 type SimilarEdge = Prisma.DrugSimilarGetPayload<{
   select: {
@@ -24,6 +23,50 @@ type SimilarEdge = Prisma.DrugSimilarGetPayload<{
 function toInt(v: string) {
   const n = Number.parseInt(v, 10);
   return Number.isFinite(n) ? n : NaN;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; remoteId: string }>;
+}): Promise<Metadata> {
+  const { lang: raw, remoteId } = await params;
+  const lang: Lang = isLang(raw) ? raw : "ar";
+  const rid = toInt(remoteId);
+  if (!Number.isFinite(rid) || rid <= 0) {
+    return {
+      title: t(lang, "siteName"),
+    };
+  }
+
+  const drug = await prisma.drug.findUnique({
+    where: { remoteId: rid },
+    select: { name: true, company: true, activeIngredient: true },
+  });
+
+  if (!drug) {
+    return {
+      title: t(lang, "siteName"),
+    };
+  }
+
+  const title = `${drug.name} — ${t(lang, "siteName")}`;
+  const parts = [drug.company, drug.activeIngredient].filter(Boolean);
+  const description = parts.length
+    ? `${t(lang, "basicInfo")}: ${parts.join(" · ")}`
+    : t(lang, "homeSubtitle");
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${lang}/drug/${rid}`,
+      languages: {
+        ar: `/ar/drug/${rid}`,
+        en: `/en/drug/${rid}`,
+      },
+    },
+  };
 }
 
 export default async function DrugDetailPage({
@@ -47,6 +90,8 @@ export default async function DrugDetailPage({
       company: true,
       activeIngredient: true,
       description: true,
+      imageSourceUrl: true,
+      imageLocalPath: true,
     },
   });
 
@@ -70,9 +115,68 @@ export default async function DrugDetailPage({
 
   const otherLang: Lang = lang === "ar" ? "en" : "ar";
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const pageUrl = baseUrl ? new URL(`/${lang}/drug/${drug.remoteId}`, baseUrl).toString() : undefined;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: t(lang, "homeNav"),
+        item: baseUrl ? new URL(`/${lang}`, baseUrl).toString() : `/${lang}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: t(lang, "drugsNav"),
+        item: baseUrl ? new URL(`/${lang}/drugs`, baseUrl).toString() : `/${lang}/drugs`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: drug.name,
+        item: pageUrl ?? `/${lang}/drug/${drug.remoteId}`,
+      },
+    ],
+  };
+
+  const drugJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Drug",
+    name: drug.name,
+    identifier: String(drug.remoteId),
+    manufacturer: drug.company ? { "@type": "Organization", name: drug.company } : undefined,
+    activeIngredient: drug.activeIngredient ?? undefined,
+    description: drug.description ?? undefined,
+    image: drug.imageSourceUrl || drug.imageLocalPath || undefined,
+    url: pageUrl,
+    inLanguage: lang,
+  };
+
+  const imageUrl = (() => {
+    const src = drug.imageSourceUrl || drug.imageLocalPath;
+    if (!src) return null;
+    if (src.startsWith("http://") || src.startsWith("https://")) return src;
+    if (src.startsWith("/")) return src;
+    return null;
+  })();
+
   return (
     <div className="flex-1">
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(drugJsonLd) }}
+        />
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-3">
             <Link
@@ -94,6 +198,11 @@ export default async function DrugDetailPage({
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
+                {imageUrl ? (
+                  <div className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                    <img src={imageUrl} alt={drug.name} className="h-48 w-full object-contain p-3 sm:h-56" loading="lazy" />
+                  </div>
+                ) : null}
                 <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
                   {t(lang, "idLabel")}: {drug.remoteId}

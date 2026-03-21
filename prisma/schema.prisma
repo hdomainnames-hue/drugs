@@ -56,6 +56,7 @@ model Article {
   lang        String
   title       String
   excerpt     String?
+  imageUrl    String?
   content     String
   publishedAt DateTime?
   createdAt   DateTime @default(now())

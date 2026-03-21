@@ -38,6 +38,8 @@ const dict = {
     idLabel: "المعرّف",
     homeNav: "الرئيسية",
     drugsNav: "الأدوية",
+    articlesNav: "المقالات",
+    faqNav: "الأسئلة",
     themeLight: "الوضع النهاري",
     themeDark: "الوضع الليلي",
 
@@ -50,6 +52,7 @@ const dict = {
     homeTotalDrugs: "إجمالي الأدوية",
     homeLatestArticles: "أحدث المقالات",
     homeLatestFaqs: "أسئلة شائعة",
+    homeFaqsDesc: "إجابات مختصرة لأسئلة شائعة حول استخدام الأدوية بأمان، الجرعات، الأعراض الجانبية، ومتى يجب استشارة الطبيب أو الصيدلي.",
     viewAll: "عرض الكل",
     homeNoArticles: "لا توجد مقالات منشورة بعد.",
     homeNoFaqs: "لا توجد أسئلة شائعة بعد.",
@@ -113,6 +116,8 @@ const dict = {
     idLabel: "ID",
     homeNav: "Home",
     drugsNav: "Drugs",
+    articlesNav: "Articles",
+    faqNav: "FAQ",
     themeLight: "Light mode",
     themeDark: "Dark mode",
 
@@ -125,6 +130,7 @@ const dict = {
     homeTotalDrugs: "Total drugs",
     homeLatestArticles: "Latest articles",
     homeLatestFaqs: "FAQs",
+    homeFaqsDesc: "Clear answers to common questions about safe medication use, dosing, side effects, and when to consult a doctor or pharmacist.",
     viewAll: "View all",
     homeNoArticles: "No published articles yet.",
     homeNoFaqs: "No FAQs yet.",
