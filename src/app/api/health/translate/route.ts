@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { geminiTranslateText, getGeminiKeysFromEnv } from "@/lib/translate/gemini";
 
+export const runtime = "nodejs";
+
 export async function GET() {
   const keys = getGeminiKeysFromEnv();
   const hasKeys = keys.length > 0;
