@@ -30,7 +30,8 @@ export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiT
   const key = getNextKey(apiKeys);
   if (!key) throw new Error("Missing GEMINI_API_KEYS");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+  const model = (process.env.GEMINI_MODEL && String(process.env.GEMINI_MODEL).trim()) || "gemini-1.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
 
   const prompt =
     targetLang === "ar"
