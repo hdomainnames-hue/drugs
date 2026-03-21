@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 export async function generateMetadata({
   params,
@@ -79,9 +80,12 @@ export default async function ArticlePage({
       <article className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 sm:p-10">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{article.title}</h1>
         {article.imageUrl ? (
-          <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-            <img src={article.imageUrl} alt={article.title} className="h-64 w-full object-cover" loading="lazy" />
-          </div>
+          <ImageLightbox
+            src={article.imageUrl}
+            alt={article.title}
+            className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
+            imgClassName="h-64 w-full object-cover"
+          />
         ) : null}
         {article.excerpt ? (
           <p className="mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-400">{article.excerpt}</p>

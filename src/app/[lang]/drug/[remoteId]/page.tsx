@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 type SimilarEdge = Prisma.DrugSimilarGetPayload<{
   select: {
@@ -164,6 +165,53 @@ export default async function DrugDetailPage({
     return null;
   })();
 
+  const descriptionSections = (() => {
+    if (!drug.description) return [] as { title: string; body: string }[];
+    const raw = String(drug.description);
+
+    const lines = raw.split(/\r?\n/);
+    const sections: { title: string; bodyLines: string[] }[] = [];
+    const defaultTitle = t(lang, "description");
+    let current = { title: defaultTitle, bodyLines: [] as string[] };
+
+    const normalizeTitle = (s: string) =>
+      s
+        .trim()
+        .replace(/^[-*#\s]+/, "")
+        .replace(/[:：]+\s*$/, "")
+        .trim();
+
+    const isHeading = (line: string) => {
+      const l = line.trim();
+      if (!l) return false;
+      if (/^#{1,6}\s+/.test(l)) return true;
+      if (/^\*\*.+\*\*$/.test(l)) return true;
+      if (/^[A-Za-z][A-Za-z\s]{2,32}:$/.test(l)) return true;
+      if (/^(Introduction|Info|Information|Indications|Dosage|Warnings|Side Effects|Contraindications):?$/i.test(l)) return true;
+      if (/^(مقدمة|معلومات|الاستعمالات|الجرعة|تحذيرات|الآثار الجانبية|موانع الاستعمال)[:：]?$/.test(l)) return true;
+      return false;
+    };
+
+    for (const line of lines) {
+      if (isHeading(line)) {
+        const title = normalizeTitle(line.replace(/^#{1,6}\s+/, "").replace(/^\*\*|\*\*$/g, ""));
+        if (current.bodyLines.join("\n").trim()) sections.push(current);
+        current = { title: title || defaultTitle, bodyLines: [] };
+        continue;
+      }
+      current.bodyLines.push(line);
+    }
+
+    if (current.bodyLines.join("\n").trim()) sections.push(current);
+
+    const cleaned = sections
+      .map((s) => ({ title: s.title, body: s.bodyLines.join("\n").trim() }))
+      .filter((s) => s.body);
+
+    if (cleaned.length <= 1) return [{ title: defaultTitle, body: raw }];
+    return cleaned;
+  })();
+
   return (
     <div className="flex-1">
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -199,9 +247,12 @@ export default async function DrugDetailPage({
               <div className="flex flex-col gap-1">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
                 {imageUrl ? (
-                  <div className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                    <img src={imageUrl} alt={drug.name} className="h-48 w-full object-contain p-3 sm:h-56" loading="lazy" />
-                  </div>
+                  <ImageLightbox
+                    src={imageUrl}
+                    alt={drug.name}
+                    className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
+                    imgClassName="h-48 w-full object-contain p-3 sm:h-56"
+                  />
                 ) : null}
                 <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -216,13 +267,13 @@ export default async function DrugDetailPage({
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 min-w-0 break-words text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
                     {drug.company || "-"}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 min-w-0 break-words text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
                     {drug.activeIngredient || "-"}
                   </div>
                 </div>
@@ -240,13 +291,13 @@ export default async function DrugDetailPage({
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                <div className="mt-1 min-w-0 break-words font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
                   {drug.company || "-"}
                 </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                <div className="mt-1 min-w-0 break-words font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
                   {drug.activeIngredient || "-"}
                 </div>
               </div>
@@ -261,14 +312,17 @@ export default async function DrugDetailPage({
             </div>
           </section>
 
-          {drug.description ? (
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-              <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "description")}</h2>
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">
-                {drug.description}
-              </div>
-            </section>
-          ) : null}
+          {drug.description
+            ? descriptionSections.map((s, idx) => (
+                <section
+                  key={`${idx}-${s.title}`}
+                  className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{s.title}</h2>
+                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">{s.body}</div>
+                </section>
+              ))
+            : null}
 
           <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "similarDrugs")}</h2>
