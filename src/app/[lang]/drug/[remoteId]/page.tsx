@@ -177,6 +177,14 @@ export default async function DrugDetailPage({
     ],
   };
 
+  const imageUrl = (() => {
+    const src = drug.imageSourceUrl || drug.imageLocalPath;
+    if (!src) return null;
+    if (src.startsWith("http://") || src.startsWith("https://")) return src;
+    if (src.startsWith("/")) return src;
+    return null;
+  })();
+
   const drugJsonLd = {
     "@context": "https://schema.org",
     "@type": "Drug",
@@ -188,14 +196,6 @@ export default async function DrugDetailPage({
     url: pageUrl,
     inLanguage: lang,
   };
-
-  const imageUrl = (() => {
-    const src = drug.imageSourceUrl || drug.imageLocalPath;
-    if (!src) return null;
-    if (src.startsWith("http://") || src.startsWith("https://")) return src;
-    if (src.startsWith("/")) return src;
-    return null;
-  })();
 
   const descriptionSections = (() => {
     if (!descriptionText) return [] as { title: string; body: string }[];
@@ -300,13 +300,13 @@ export default async function DrugDetailPage({
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
+                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
                     {company || "-"}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
+                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
                     {activeIngredient || "-"}
                   </div>
                 </div>
@@ -324,13 +324,13 @@ export default async function DrugDetailPage({
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
+                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
                   {company || "-"}
                 </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
+                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
                   {activeIngredient || "-"}
                 </div>
               </div>
