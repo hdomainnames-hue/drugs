@@ -6,6 +6,7 @@ import { isLang, t } from "@/lib/i18n";
 import ThemeToggle from "@/components/theme-toggle";
 import NavLink from "@/components/nav-link";
 import LanguageToggle from "@/components/language-toggle";
+import MobileMenu from "@/components/mobile-menu";
 
 export async function generateMetadata({
   params,
@@ -66,6 +67,7 @@ export default async function LangLayout({
           </Link>
 
           <div className="flex items-center gap-2">
+            <MobileMenu lang={lang} />
             <LanguageToggle lang={lang} />
             <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
 

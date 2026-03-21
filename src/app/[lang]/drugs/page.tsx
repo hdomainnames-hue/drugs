@@ -122,10 +122,10 @@ export default async function DrugsPage({
                 <div className="flex flex-col gap-2">
                   <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{d.name}</div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                    <div>
+                    <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
                       {t(lang, "company")}: {d.company || "-"}
                     </div>
-                    <div>
+                    <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
                       {t(lang, "activeIngredient")}: {d.activeIngredient || "-"}
                     </div>
                     <div>
