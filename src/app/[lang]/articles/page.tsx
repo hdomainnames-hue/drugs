@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
+import { getOrTranslateFields } from "@/lib/translate/translations";
 
 export default async function ArticlesIndexPage({
   params,
@@ -12,12 +13,21 @@ export default async function ArticlesIndexPage({
   const { lang: raw } = await params;
   const lang: Lang = isLang(raw) ? raw : "ar";
 
+  const primaryLang = lang === "ar" ? "en" : lang;
   const articles = await prisma.article.findMany({
-    where: { lang, publishedAt: { not: null } },
+    where: { lang: primaryLang, publishedAt: { not: null } },
     orderBy: { publishedAt: "desc" },
     take: 30,
     select: { slug: true, title: true, excerpt: true, imageUrl: true, publishedAt: true },
   });
+
+  const translations = await getOrTranslateFields(
+    lang,
+    articles.flatMap((a) => [
+      { entityType: "Article" as const, entityId: a.slug, field: "title", sourceText: a.title },
+      { entityType: "Article" as const, entityId: a.slug, field: "excerpt", sourceText: a.excerpt || "" },
+    ]),
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
@@ -27,6 +37,13 @@ export default async function ArticlesIndexPage({
         {articles.length ? (
           <div className="mt-6 space-y-3">
             {articles.map((a) => (
+              (() => {
+                const titleKey = `Article:${a.slug}:title`;
+                const excerptKey = `Article:${a.slug}:excerpt`;
+                const title = lang === "ar" ? translations[titleKey] ?? t(lang, "translationPending") : a.title;
+                const excerpt = lang === "ar" ? translations[excerptKey] ?? "" : a.excerpt || "";
+
+                return (
               <Link
                 key={a.slug}
                 href={`/${lang}/articles/${a.slug}`}
@@ -36,19 +53,21 @@ export default async function ArticlesIndexPage({
                   {a.imageUrl ? (
                     <img
                       src={a.imageUrl}
-                      alt={a.title}
+                      alt={title}
                       className="h-12 w-12 shrink-0 rounded-xl border border-zinc-200 bg-white object-cover dark:border-zinc-800 dark:bg-zinc-950"
                       loading="lazy"
                     />
                   ) : null}
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{a.title}</div>
-                    {a.excerpt ? (
-                      <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">{a.excerpt}</div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{title}</div>
+                    {excerpt ? (
+                      <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">{excerpt}</div>
                     ) : null}
                   </div>
                 </div>
               </Link>
+                );
+              })()
             ))}
           </div>
         ) : (

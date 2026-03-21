@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
+import { getOrTranslateFields } from "@/lib/translate/translations";
 
 export default async function Home({
   params,
@@ -12,21 +13,37 @@ export default async function Home({
   const { lang: raw } = await params;
   const lang: Lang = isLang(raw) ? raw : "ar";
 
+  const primaryLang = lang === "ar" ? "en" : lang;
+
   const [totalDrugs, latestArticles, latestFaqs] = await Promise.all([
     prisma.drug.count(),
     prisma.article.findMany({
-      where: { lang, publishedAt: { not: null } },
+      where: { lang: primaryLang, publishedAt: { not: null } },
       orderBy: { publishedAt: "desc" },
       take: 3,
       select: { slug: true, title: true, excerpt: true, publishedAt: true },
     }),
     prisma.faq.findMany({
-      where: { lang },
+      where: { lang: primaryLang },
       orderBy: [{ order: "asc" }, { id: "asc" }],
       take: 6,
       select: { id: true, question: true, answer: true },
     }),
   ]);
+
+  const translations = await getOrTranslateFields(
+    lang,
+    [
+      ...latestArticles.flatMap((a) => [
+        { entityType: "Article" as const, entityId: a.slug, field: "title", sourceText: a.title },
+        { entityType: "Article" as const, entityId: a.slug, field: "excerpt", sourceText: a.excerpt || "" },
+      ]),
+      ...latestFaqs.flatMap((f) => [
+        { entityType: "FAQ" as const, entityId: String(f.id), field: "question", sourceText: f.question },
+        { entityType: "FAQ" as const, entityId: String(f.id), field: "answer", sourceText: f.answer },
+      ]),
+    ],
+  );
 
   return (
     <div className="flex flex-1">
@@ -115,8 +132,12 @@ export default async function Home({
                     href={`/${lang}/articles/${a.slug}`}
                     className="block rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{a.title}</div>
-                    <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">{a.excerpt || ""}</div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                      {lang === "ar" ? translations[`Article:${a.slug}:title`] ?? t(lang, "translationPending") : a.title}
+                    </div>
+                    <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">
+                      {lang === "ar" ? translations[`Article:${a.slug}:excerpt`] ?? "" : a.excerpt || ""}
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -143,8 +164,12 @@ export default async function Home({
                     key={String(f.id)}
                     className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
                   >
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{f.question}</div>
-                    <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">{f.answer}</div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                      {lang === "ar" ? translations[`FAQ:${String(f.id)}:question`] ?? t(lang, "translationPending") : f.question}
+                    </div>
+                    <div className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-400">
+                      {lang === "ar" ? translations[`FAQ:${String(f.id)}:answer`] ?? t(lang, "translationPending") : f.answer}
+                    </div>
                   </div>
                 ))}
               </div>

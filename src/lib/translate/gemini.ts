@@ -1,0 +1,72 @@
+import crypto from "node:crypto";
+
+type GeminiTranslateOptions = {
+  apiKeys: string[];
+  text: string;
+  targetLang: "ar";
+};
+
+function normalizeKeys(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+let keyIndex = 0;
+function getNextKey(keys: string[]) {
+  if (!keys.length) return null;
+  const k = keys[keyIndex % keys.length];
+  keyIndex += 1;
+  return k;
+}
+
+export function sha256(text: string) {
+  return crypto.createHash("sha256").update(text, "utf8").digest("hex");
+}
+
+export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiTranslateOptions): Promise<string> {
+  const key = getNextKey(apiKeys);
+  if (!key) throw new Error("Missing GEMINI_API_KEYS");
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+
+  const prompt =
+    targetLang === "ar"
+      ? "Translate the following text to Modern Standard Arabic. Keep medical terms accurate. Keep names as proper nouns when appropriate. Return ONLY the Arabic translation, no quotes, no extra commentary.\n\nText:\n" +
+        text
+      : text;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.9,
+        maxOutputTokens: 2048,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Gemini translate failed: ${res.status} ${res.statusText} ${body}`);
+  }
+
+  const data = (await res.json()) as any;
+  const out =
+    data?.candidates?.[0]?.content?.parts
+      ?.map((p: any) => (typeof p?.text === "string" ? p.text : ""))
+      .join("")
+      .trim() ?? "";
+
+  if (!out) throw new Error("Gemini translate returned empty output");
+  return out;
+}
+
+export function getGeminiKeysFromEnv() {
+  return normalizeKeys(process.env.GEMINI_API_KEYS);
+}

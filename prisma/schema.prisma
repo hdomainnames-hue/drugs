@@ -76,3 +76,19 @@ model Faq {
 
   @@index([lang, order])
 }
+
+model Translation {
+  id             Int      @id @default(autoincrement())
+  entityType     String
+  entityId       String
+  field          String
+  lang           String
+  sourceText     String
+  sourceHash     String
+  translatedText String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([entityType, entityId, field, lang])
+  @@index([entityType, entityId, lang])
+}

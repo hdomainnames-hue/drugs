@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { ImageLightbox } from "@/components/image-lightbox";
+import { getOrTranslateFields } from "@/lib/translate/translations";
 
 type SimilarEdge = Prisma.DrugSimilarGetPayload<{
   select: {
@@ -51,11 +52,20 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${drug.name} — ${t(lang, "siteName")}`;
-  const parts = [drug.company, drug.activeIngredient].filter(Boolean);
-  const description = parts.length
-    ? `${t(lang, "basicInfo")}: ${parts.join(" · ")}`
-    : t(lang, "homeSubtitle");
+  const translated = await getOrTranslateFields(lang, [
+    { entityType: "Drug", entityId: String(rid), field: "name", sourceText: drug.name },
+    { entityType: "Drug", entityId: String(rid), field: "company", sourceText: drug.company || "" },
+    { entityType: "Drug", entityId: String(rid), field: "activeIngredient", sourceText: drug.activeIngredient || "" },
+  ]);
+
+  const drugName = lang === "ar" ? translated[`Drug:${String(rid)}:name`] ?? t(lang, "translationPending") : drug.name;
+  const company = lang === "ar" ? translated[`Drug:${String(rid)}:company`] ?? "" : drug.company || "";
+  const activeIngredient =
+    lang === "ar" ? translated[`Drug:${String(rid)}:activeIngredient`] ?? "" : drug.activeIngredient || "";
+
+  const title = `${drugName} — ${t(lang, "siteName")}`;
+  const parts = [company, activeIngredient].filter(Boolean);
+  const description = parts.length ? `${t(lang, "basicInfo")}: ${parts.join(" · ")}` : t(lang, "homeSubtitle");
 
   return {
     title,
@@ -114,6 +124,29 @@ export default async function DrugDetailPage({
     },
   });
 
+  const translations = await getOrTranslateFields(
+    lang,
+    [
+      { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "name", sourceText: drug.name },
+      { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "company", sourceText: drug.company || "" },
+      { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "activeIngredient", sourceText: drug.activeIngredient || "" },
+      { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "description", sourceText: drug.description || "" },
+      ...similar.flatMap((e) => [
+        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "name", sourceText: e.toDrug.name },
+        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "company", sourceText: e.toDrug.company || "" },
+        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "activeIngredient", sourceText: e.toDrug.activeIngredient || "" },
+      ]),
+    ],
+  );
+
+  const drugName =
+    lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:name`] ?? t(lang, "translationPending") : drug.name;
+  const company = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:company`] ?? "" : drug.company || "";
+  const activeIngredient =
+    lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:activeIngredient`] ?? "" : drug.activeIngredient || "";
+  const descriptionText =
+    lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:description`] ?? "" : drug.description || "";
+
   const otherLang: Lang = lang === "ar" ? "en" : "ar";
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -147,12 +180,11 @@ export default async function DrugDetailPage({
   const drugJsonLd = {
     "@context": "https://schema.org",
     "@type": "Drug",
-    name: drug.name,
-    identifier: String(drug.remoteId),
-    manufacturer: drug.company ? { "@type": "Organization", name: drug.company } : undefined,
-    activeIngredient: drug.activeIngredient ?? undefined,
-    description: drug.description ?? undefined,
-    image: drug.imageSourceUrl || drug.imageLocalPath || undefined,
+    name: drugName,
+    description: descriptionText || undefined,
+    image: imageUrl ?? undefined,
+    manufacturer: company ? { "@type": "Organization", name: company } : undefined,
+    activeIngredient: activeIngredient ?? undefined,
     url: pageUrl,
     inLanguage: lang,
   };
@@ -166,8 +198,8 @@ export default async function DrugDetailPage({
   })();
 
   const descriptionSections = (() => {
-    if (!drug.description) return [] as { title: string; body: string }[];
-    const raw = String(drug.description);
+    if (!descriptionText) return [] as { title: string; body: string }[];
+    const raw = String(descriptionText);
 
     const lines = raw.split(/\r?\n/);
     const sections: { title: string; bodyLines: string[] }[] = [];
@@ -249,13 +281,13 @@ export default async function DrugDetailPage({
                 {imageUrl ? (
                   <ImageLightbox
                     src={imageUrl}
-                    alt={drug.name}
+                    alt={drugName}
                     lang={lang}
                     className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
                     imgClassName="h-48 w-full object-contain p-3 sm:h-56"
                   />
                 ) : null}
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drug.name}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drugName}</h1>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
                   {t(lang, "idLabel")}: {drug.remoteId}
                 </div>
@@ -269,13 +301,13 @@ export default async function DrugDetailPage({
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
                   <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
-                    {drug.company || "-"}
+                    {company || "-"}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
                   <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
-                    {drug.activeIngredient || "-"}
+                    {activeIngredient || "-"}
                   </div>
                 </div>
               </div>
@@ -293,13 +325,13 @@ export default async function DrugDetailPage({
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
                 <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
-                  {drug.company || "-"}
+                  {company || "-"}
                 </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
                 <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 [overflow-wrap:anywhere] dark:text-zinc-50">
-                  {drug.activeIngredient || "-"}
+                  {activeIngredient || "-"}
                 </div>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">

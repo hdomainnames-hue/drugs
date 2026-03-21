@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
+import { getOrTranslateFields } from "@/lib/translate/translations";
 
 function toInt(v: string | undefined, fallback: number) {
   const n = Number.parseInt(String(v ?? ""), 10);
@@ -66,6 +67,15 @@ export default async function DrugsPage({
     prisma.drug.count({ where }),
   ]);
 
+  const translations = await getOrTranslateFields(
+    lang,
+    (items as DrugListItem[]).flatMap((d) => [
+      { entityType: "Drug" as const, entityId: String(d.remoteId), field: "name", sourceText: d.name },
+      { entityType: "Drug" as const, entityId: String(d.remoteId), field: "company", sourceText: d.company || "" },
+      { entityType: "Drug" as const, entityId: String(d.remoteId), field: "activeIngredient", sourceText: d.activeIngredient || "" },
+    ]),
+  );
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const prevPage = page > 1 ? page - 1 : null;
   const nextPage = page < totalPages ? page + 1 : null;
@@ -114,19 +124,28 @@ export default async function DrugsPage({
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(items as DrugListItem[]).map((d) => (
+              (() => {
+                const nameKey = `Drug:${String(d.remoteId)}:name`;
+                const companyKey = `Drug:${String(d.remoteId)}:company`;
+                const activeKey = `Drug:${String(d.remoteId)}:activeIngredient`;
+                const name = lang === "ar" ? translations[nameKey] ?? t(lang, "translationPending") : d.name;
+                const company = lang === "ar" ? translations[companyKey] ?? "" : d.company || "-";
+                const activeIngredient = lang === "ar" ? translations[activeKey] ?? "" : d.activeIngredient || "-";
+
+                return (
               <Link
                 key={d.remoteId}
                 href={`/${lang}/drug/${d.remoteId}`}
                 className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
               >
                 <div className="flex flex-col gap-2">
-                  <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{d.name}</div>
+                  <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{name}</div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
-                      {t(lang, "company")}: {d.company || "-"}
+                      {t(lang, "company")}: {company || "-"}
                     </div>
                     <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
-                      {t(lang, "activeIngredient")}: {d.activeIngredient || "-"}
+                      {t(lang, "activeIngredient")}: {activeIngredient || "-"}
                     </div>
                     <div>
                       {t(lang, "price")}: {d.price || "-"}
@@ -134,6 +153,8 @@ export default async function DrugsPage({
                   </div>
                 </div>
               </Link>
+                );
+              })()
             ))}
           </div>
 
