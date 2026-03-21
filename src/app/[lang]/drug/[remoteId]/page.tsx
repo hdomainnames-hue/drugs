@@ -147,6 +147,12 @@ export default async function DrugDetailPage({
   const descriptionText =
     lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:description`] ?? "" : drug.description || "";
 
+  const trSimilar = (remoteId: number, field: "name" | "company" | "activeIngredient", fallback: string) => {
+    if (lang !== "ar") return fallback;
+    const v = translations[`Drug:${String(remoteId)}:${field}`];
+    return v ?? t(lang, "translationPending");
+  };
+
   const otherLang: Lang = lang === "ar" ? "en" : "ar";
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -369,14 +375,14 @@ export default async function DrugDetailPage({
                     className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
                     <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                      {s.toDrug.name}
+                      {trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
                     </div>
                     <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
                       <div>
-                        {t(lang, "company")}: {s.toDrug.company || "-"}
+                        {t(lang, "company")}: {trSimilar(s.toDrug.remoteId, "company", s.toDrug.company || "-")}
                       </div>
                       <div>
-                        {t(lang, "activeIngredient")}: {s.toDrug.activeIngredient || "-"}
+                        {t(lang, "activeIngredient")}: {trSimilar(s.toDrug.remoteId, "activeIngredient", s.toDrug.activeIngredient || "-")}
                       </div>
                     </div>
                   </Link>
