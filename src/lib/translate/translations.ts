@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
 import { geminiTranslateText, getGeminiKeysFromEnv, sha256 } from "@/lib/translate/gemini";
+import { translateText } from "@/lib/translate/provider";
 
 type EntityType = "Drug" | "Article" | "FAQ";
 
@@ -75,7 +76,7 @@ export async function getOrTranslateFields(
     const k = byKey(r);
     const h = sha256(r.sourceText);
     try {
-      const translatedText = await geminiTranslateText({ apiKeys: keys, text: r.sourceText, targetLang: "ar" });
+      const translatedText = await translateText(r.sourceText, lang);
       await prisma.translation.upsert({
         where: { entityType_entityId_field_lang: { entityType: r.entityType, entityId: r.entityId, field: r.field, lang } },
         create: {
@@ -96,7 +97,7 @@ export async function getOrTranslateFields(
       out[k] = translatedText;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.error("Gemini translation failed", {
+      console.error("Translation failed for request", {
         entityType: r.entityType,
         entityId: r.entityId,
         field: r.field,
