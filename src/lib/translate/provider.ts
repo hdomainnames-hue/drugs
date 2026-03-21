@@ -20,15 +20,20 @@ async function translateWithGemini(text: string, targetLang: string): Promise<st
  * Groq Translation Provider (Placeholder for future implementation)
  */
 async function translateWithGroq(text: string, targetLang: string): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+  const apiKeysStr = process.env.GROQ_API_KEY || "";
+  const apiKeys = apiKeysStr.split(",").map(k => k.trim()).filter(Boolean);
+  
+  if (apiKeys.length === 0) throw new Error("GROQ_API_KEY not configured");
+
+  // Simple rotation/randomization for Groq keys
+  const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
   const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
   const url = "https://api.groq.com/openai/v1/chat/completions";
 
   const prompt = `Translate the following drug-related text to ${
     targetLang === "ar" ? "Arabic" : "English"
-  }. Return ONLY the translated text, no explanations, no chat, no quotes. Use professional medical/pharmaceutical terminology: "${text}"`;
+  }. Return ONLY the translated text, no explanations, no chat, no quotes, no preamble. Use professional medical/pharmaceutical terminology: "${text}"`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -49,7 +54,12 @@ async function translateWithGroq(text: string, targetLang: string): Promise<stri
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || "";
+  let translated = data.choices?.[0]?.message?.content?.trim() || "";
+  
+  // Clean up any potential markdown or quotes Groq might add
+  translated = translated.replace(/^["']|["']$/g, "").trim();
+  
+  return translated;
 }
 
 /**
