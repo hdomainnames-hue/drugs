@@ -27,19 +27,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/en/medical-disclaimer",
   ];
 
-  const [drugs, articles] = await Promise.all([
-    prisma.drug.findMany({
-      select: { remoteId: true, updatedAt: true },
-      orderBy: { remoteId: "asc" },
-      take: 50000,
-    }),
-    prisma.article.findMany({
-      where: { publishedAt: { not: null } },
-      select: { slug: true, updatedAt: true, publishedAt: true },
-      orderBy: { updatedAt: "desc" },
-      take: 50000,
-    }),
-  ]);
+  const [drugs, articles] = await (async () => {
+    try {
+      return await Promise.all([
+        prisma.drug.findMany({
+          select: { remoteId: true, updatedAt: true },
+          orderBy: { remoteId: "asc" },
+          take: 50000,
+        }),
+        prisma.article.findMany({
+          where: { publishedAt: { not: null } },
+          select: { slug: true, updatedAt: true, publishedAt: true },
+          orderBy: { updatedAt: "desc" },
+          take: 50000,
+        }),
+      ]);
+    } catch {
+      return [[], []] as const;
+    }
+  })();
 
   const core = corePaths.map((p) => ({
     url: new URL(p, baseUrl).toString(),

@@ -7,6 +7,8 @@ export function isLang(v: string): v is Lang {
 const dict = {
   ar: {
     siteName: "موقع الأدوية",
+    menu: "القائمة",
+    close: "إغلاق",
     homeTitle: "موقع الأدوية",
     homeSubtitle: "معلومات دوائية منظمة وسهلة البحث، مع صفحات صديقة لمحركات البحث.",
     openDatabase: "فتح دليل الأدوية",
@@ -85,6 +87,8 @@ const dict = {
   },
   en: {
     siteName: "Drugs",
+    menu: "Menu",
+    close: "Close",
     homeTitle: "Drugs",
     homeSubtitle: "Organized drug information you can search and browse, with SEO-friendly pages.",
     openDatabase: "Open drug guide",

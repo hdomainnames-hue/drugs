@@ -67,9 +67,9 @@ export default async function LangLayout({
           </Link>
 
           <div className="flex items-center gap-2">
-            <MobileMenu lang={lang} />
             <LanguageToggle lang={lang} />
             <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
+            <MobileMenu lang={lang} />
 
             <nav className="hidden items-center gap-4 text-sm sm:flex">
               <NavLink

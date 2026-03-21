@@ -250,6 +250,7 @@ export default async function DrugDetailPage({
                   <ImageLightbox
                     src={imageUrl}
                     alt={drug.name}
+                    lang={lang}
                     className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
                     imgClassName="h-48 w-full object-contain p-3 sm:h-56"
                   />

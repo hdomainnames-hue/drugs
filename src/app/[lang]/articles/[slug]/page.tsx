@@ -80,12 +80,15 @@ export default async function ArticlePage({
       <article className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 sm:p-10">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{article.title}</h1>
         {article.imageUrl ? (
-          <ImageLightbox
-            src={article.imageUrl}
-            alt={article.title}
-            className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
-            imgClassName="h-64 w-full object-cover"
-          />
+          <div className="rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+            <ImageLightbox
+              src={article.imageUrl}
+              alt={article.title}
+              lang={lang}
+              className="block w-full"
+              imgClassName="h-auto w-full rounded-2xl object-cover"
+            />
+          </div>
         ) : null}
         {article.excerpt ? (
           <p className="mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-400">{article.excerpt}</p>

@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import type { Lang } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 
 export function ImageLightbox({
   src,
   alt,
   className,
   imgClassName,
+  lang,
 }: {
   src: string;
   alt: string;
   className?: string;
   imgClassName?: string;
+  lang: Lang;
 }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -59,7 +63,7 @@ export function ImageLightbox({
                 onClick={() => setOpen(false)}
                 className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
               >
-                Close
+                {t(lang, "close")}
               </button>
             </div>
             <div className="bg-white p-3 dark:bg-zinc-950">
