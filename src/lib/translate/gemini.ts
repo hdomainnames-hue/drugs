@@ -29,6 +29,13 @@ export function sha256(text: string) {
 export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiTranslateOptions): Promise<string> {
   const model = (process.env.GEMINI_MODEL && String(process.env.GEMINI_MODEL).trim()) || "gemini-2.0-flash";
 
+  const timeoutMs = (() => {
+    const raw = process.env.GEMINI_TIMEOUT_MS;
+    const n = raw ? Number.parseInt(String(raw), 10) : 5000;
+    if (!Number.isFinite(n) || n <= 0) return 5000;
+    return Math.min(30_000, n);
+  })();
+
   const maxAttempts = Math.max(1, Math.min(6, apiKeys.length ? apiKeys.length * 2 : 1));
   let lastErr: unknown;
 
@@ -44,6 +51,8 @@ export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiT
         text
       : text;
 
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), timeoutMs);
     const res = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -55,7 +64,8 @@ export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiT
           maxOutputTokens: 2048,
         },
       }),
-    });
+      signal: ac.signal,
+    }).finally(() => clearTimeout(timer));
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -67,10 +77,7 @@ export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiT
         /RESOURCE_EXHAUSTED|rate limit|quota/i.test(res.statusText);
 
       if (isQuota && attempt < maxAttempts - 1) {
-        const m = body.match(/"retryDelay"\s*:\s*"(\d+)s"/);
-        const retrySeconds = m ? Number.parseInt(m[1]!, 10) : 20;
-        const delayMs = Math.max(1000, Math.min(60_000, retrySeconds * 1000));
-        await new Promise((r) => setTimeout(r, delayMs));
+        // Fail-fast: don't sleep inside serverless. Rotate keys immediately.
         lastErr = new Error(msg);
         continue;
       }
