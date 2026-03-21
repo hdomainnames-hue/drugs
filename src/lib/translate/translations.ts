@@ -57,7 +57,21 @@ export async function getOrTranslateFields(
     }
   }
 
-  for (const r of missing) {
+  const maxPerRequest = (() => {
+    const raw = process.env.TRANSLATE_MAX_PER_REQUEST;
+    const n = raw ? Number.parseInt(String(raw), 10) : 5;
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.min(50, n);
+  })();
+
+  const toTranslate = maxPerRequest > 0 ? missing.slice(0, maxPerRequest) : [];
+  const skipped = maxPerRequest > 0 ? missing.slice(maxPerRequest) : missing;
+
+  for (const r of skipped) {
+    out[byKey(r)] = t(lang, "translationPending");
+  }
+
+  for (const r of toTranslate) {
     const k = byKey(r);
     const h = sha256(r.sourceText);
     try {
