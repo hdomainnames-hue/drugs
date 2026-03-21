@@ -171,7 +171,7 @@ export default async function DrugDetailPage({
 
     const lines = raw.split(/\r?\n/);
     const sections: { title: string; bodyLines: string[] }[] = [];
-    const defaultTitle = t(lang, "description");
+    const defaultTitle: string = String(t(lang, "description"));
     let current = { title: defaultTitle, bodyLines: [] as string[] };
 
     const normalizeTitle = (s: string) =>
