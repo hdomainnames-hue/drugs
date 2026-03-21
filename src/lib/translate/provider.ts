@@ -11,9 +11,9 @@ interface TranslationProvider {
 /**
  * Gemini Translation Wrapper
  */
-async function translateWithGemini(text: string, targetLang: string): Promise<string> {
+async function translateWithGemini(text: string): Promise<string> {
   const keys = getGeminiKeysFromEnv();
-  return geminiTranslateText({ apiKeys: keys, text, targetLang: "ar" });
+  return geminiTranslateText({ apiKeys: keys, text, targetLang: "ar" as const });
 }
 
 /**
@@ -31,9 +31,20 @@ async function translateWithGroq(text: string, targetLang: string): Promise<stri
   const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
   const url = "https://api.groq.com/openai/v1/chat/completions";
 
-  const prompt = `Translate the following drug-related text to ${
-    targetLang === "ar" ? "Arabic" : "English"
-  }. Return ONLY the translated text, no explanations, no chat, no quotes, no preamble. Use professional medical/pharmaceutical terminology: "${text}"`;
+  const targetLanguageName = targetLang === "ar" ? "Arabic" : "English";
+
+  const system =
+    "You are a professional medical/pharmaceutical translator. " +
+    "Translate faithfully with correct terminology. " +
+    "Do not add any extra information, warnings, or commentary. " +
+    "Preserve numbers, units, dosages (mg, mL, mcg, IU), frequencies, and brand/generic names. " +
+    "If the input already contains Arabic, keep it unchanged. " +
+    "Output ONLY the translation text, no quotes, no markdown.";
+
+  const user =
+    `Target language: ${targetLanguageName}.\n` +
+    "Text:\n" +
+    text;
 
   const response = await fetch(url, {
     method: "POST",
@@ -43,8 +54,11 @@ async function translateWithGroq(text: string, targetLang: string): Promise<stri
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.1,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      temperature: 0,
     }),
   });
 
@@ -57,7 +71,11 @@ async function translateWithGroq(text: string, targetLang: string): Promise<stri
   let translated = data.choices?.[0]?.message?.content?.trim() || "";
   
   // Clean up any potential markdown or quotes Groq might add
-  translated = translated.replace(/^["']|["']$/g, "").trim();
+  translated = translated
+    .replace(/^```[a-zA-Z]*\s*/g, "")
+    .replace(/```$/g, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
   
   return translated;
 }
@@ -68,7 +86,7 @@ async function translateWithGroq(text: string, targetLang: string): Promise<stri
 export async function translateText(text: string, targetLang: string): Promise<string> {
   // 1. Try Gemini first (preferred)
   try {
-    const geminiResult = await translateWithGemini(text, targetLang);
+    const geminiResult = await translateWithGemini(text);
     if (geminiResult && geminiResult !== text) return geminiResult;
   } catch (err) {
     console.error("Gemini translation failed, trying fallback...", err instanceof Error ? err.message : err);
