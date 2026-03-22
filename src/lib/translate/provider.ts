@@ -228,6 +228,15 @@ function buildGroqMessages(text: string, ctx: TranslateContext) {
     "If the input contains headings or label-like lines, keep them as clear Arabic medical headings. " +
     "Keep list formatting (one item per line) when the input is a list. " +
     "Use these preferred medical terms when applicable: " +
+    "Mechanism of Action=آلية العمل; MoA=آلية العمل; " +
+    "Administration=طريقة الاستعمال; How to use=طريقة الاستعمال; " +
+    "Dosage=الجرعة; Dosing=الجرعات; " +
+    "Precautions=احتياطات; Warnings=تحذيرات; " +
+    "Drug Interactions=التداخلات الدوائية; Interactions=التداخلات الدوائية; " +
+    "Adverse Effects=الآثار الجانبية; Side Effects=الآثار الجانبية; " +
+    "Contraindications=موانع الاستعمال; " +
+    "Storage=الحفظ; " +
+    "Pregnancy and Lactation=الحمل والرضاعة; " +
     "Indication=دواعي الاستعمال; Indications=دواعي الاستعمال; " +
     "runny nose=سيلان الأنف; blocked nose=احتقان الأنف; sinus=الجيوب الأنفية; " +
     "sneezing=العطاس; watery itchy eyes=حكة ودمع العينين; sinus pain=ألم الجيوب الأنفية; " +

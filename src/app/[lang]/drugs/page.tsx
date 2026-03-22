@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
@@ -20,6 +21,41 @@ type DrugListItem = Prisma.DrugGetPayload<{
     price: true;
   };
 }>;
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const { lang: raw } = await params;
+  const lang: Lang = isLang(raw) ? raw : "ar";
+  const sp = await searchParams;
+  const qRaw = Array.isArray(sp.q) ? sp.q[0] : sp.q;
+  const q = (qRaw ?? "").trim();
+
+  const base: Metadata = {
+    title: t(lang, "drugsDbTitle"),
+    alternates: {
+      canonical: `/${lang}/drugs${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+      languages: {
+        ar: "/ar/drugs",
+        en: "/en/drugs",
+      },
+    },
+  };
+
+  if (!q) return base;
+
+  return {
+    ...base,
+    robots: {
+      index: false,
+      follow: true,
+    },
+  };
+}
 
 export default async function DrugsPage({
   params,
@@ -141,10 +177,10 @@ export default async function DrugsPage({
                 <div className="flex flex-col gap-2">
                   <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{name}</div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                    <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
+                    <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
                       {t(lang, "company")}: {company || "-"}
                     </div>
-                    <div className="min-w-0 overflow-hidden text-ellipsis [overflow-wrap:anywhere]">
+                    <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
                       {t(lang, "activeIngredient")}: {activeIngredient || "-"}
                     </div>
                     <div>

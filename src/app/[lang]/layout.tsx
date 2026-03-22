@@ -18,16 +18,32 @@ export async function generateMetadata({
 
   const title = t(lang, "siteName");
   const description = t(lang, "homeSubtitle");
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const metadataBase = baseUrl ? new URL(baseUrl) : undefined;
 
   return {
     title,
     description,
+    metadataBase,
     alternates: {
       canonical: `/${lang}`,
       languages: {
         ar: "/ar",
         en: "/en",
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/${lang}`,
+      siteName: title,
+      locale: lang === "ar" ? "ar" : "en",
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
     },
   };
 }
@@ -86,6 +102,20 @@ export default async function LangLayout({
                 activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
               >
                 {t(lang, "drugsNav")}
+              </NavLink>
+              <NavLink
+                href={`/${lang}/companies`}
+                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+              >
+                {t(lang, "companiesTitle")}
+              </NavLink>
+              <NavLink
+                href={`/${lang}/active-ingredients`}
+                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+              >
+                {t(lang, "activeIngredientsTitle")}
               </NavLink>
               <NavLink
                 href={`/${lang}/articles`}

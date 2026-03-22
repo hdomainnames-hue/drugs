@@ -221,6 +221,7 @@ export default async function DrugDetailPage({
         .trim()
         .replace(/^[-*#\s]+/, "")
         .replace(/[:：]+\s*$/, "")
+        .replace(/^ميكانيكية\s+العمل$/g, "آلية العمل")
         .trim();
 
     const isHeading = (line: string) => {
@@ -230,7 +231,12 @@ export default async function DrugDetailPage({
       if (/^\*\*.+\*\*$/.test(l)) return true;
       if (/^[A-Za-z][A-Za-z\s]{2,32}:$/.test(l)) return true;
       if (/^(Introduction|Info|Information|Indications|Dosage|Warnings|Side Effects|Contraindications):?$/i.test(l)) return true;
-      if (/^(مقدمة|معلومات|الاستعمالات|الجرعة|تحذيرات|الآثار الجانبية|موانع الاستعمال)[:：]?$/.test(l)) return true;
+      if (
+        /^(الوصف|مقدمة|معلومات|الاستعمالات|دواعي الاستعمال|الاستطبابات|الجرعة|الجرعات|طريقة الاستعمال|آلية العمل|ميكانيكية العمل|التحذيرات|احتياطات|التداخلات الدوائية|الآثار الجانبية|الأعراض الجانبية|موانع الاستعمال|الحفظ|التخزين|الحمل والرضاعة)[:：]?$/.test(
+          l,
+        )
+      )
+        return true;
       return false;
     };
 
@@ -385,7 +391,7 @@ export default async function DrugDetailPage({
                     href={`/${lang}/drug/${s.toDrug.remoteId}`}
                     className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
-                    <div className={`flex items-start gap-3 ${lang === "ar" ? "flex-row-reverse" : ""}`}>
+                    <div className="flex flex-row-reverse items-start gap-3">
                       {(() => {
                         const src = s.toDrug.imageSourceUrl || s.toDrug.imageLocalPath;
                         const thumb = !src

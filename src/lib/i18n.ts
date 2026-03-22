@@ -85,6 +85,14 @@ const dict = {
       "المحتوى في هذا الموقع للتثقيف العام ولا يُعد نصيحة طبية. استشر الطبيب/الصيدلي قبل اتخاذ أي قرار علاجي.",
     articlesTitle: "المقالات",
     faqTitle: "الأسئلة الشائعة",
+
+    companiesTitle: "الشركات",
+    companiesSubtitle: "تصفح الأدوية حسب الشركة المصنّعة.",
+    noCompanies: "لا توجد شركات متاحة حالياً.",
+
+    activeIngredientsTitle: "المواد الفعالة",
+    activeIngredientsSubtitle: "تصفح الأدوية حسب المادة الفعالة.",
+    noActiveIngredients: "لا توجد مواد فعالة متاحة حالياً.",
   },
   en: {
     siteName: "Drugs",
@@ -166,6 +174,14 @@ const dict = {
       "The content on this site is for general education and is not medical advice. Consult a doctor/pharmacist before making treatment decisions.",
     articlesTitle: "Articles",
     faqTitle: "FAQ",
+
+    companiesTitle: "Companies",
+    companiesSubtitle: "Browse drugs by manufacturer.",
+    noCompanies: "No companies available.",
+
+    activeIngredientsTitle: "Active ingredients",
+    activeIngredientsSubtitle: "Browse drugs by active ingredient.",
+    noActiveIngredients: "No active ingredients available.",
   },
 } as const;
 
