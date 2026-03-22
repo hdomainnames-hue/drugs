@@ -7,6 +7,7 @@ import ThemeToggle from "@/components/theme-toggle";
 import NavLink from "@/components/nav-link";
 import LanguageToggle from "@/components/language-toggle";
 import MobileMenu from "@/components/mobile-menu";
+import NavbarSearch from "@/components/navbar-search";
 
 export async function generateMetadata({
   params,
@@ -82,11 +83,7 @@ export default async function LangLayout({
             {t(lang, "siteName")}
           </Link>
 
-          <div className="flex items-center gap-2">
-            <LanguageToggle lang={lang} />
-            <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
-            <MobileMenu lang={lang} />
-
+          <div className={`flex items-center gap-2 ${lang === "ar" ? "sm:flex-row-reverse" : ""}`}>
             <nav className="hidden items-center gap-4 text-sm sm:flex">
               <NavLink
                 href={`/${lang}`}
@@ -132,6 +129,13 @@ export default async function LangLayout({
                 {t(lang, "faqNav")}
               </NavLink>
             </nav>
+
+            <div className="flex items-center gap-2">
+              <NavbarSearch lang={lang} />
+              <LanguageToggle lang={lang} />
+              <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
+              <MobileMenu lang={lang} />
+            </div>
           </div>
         </div>
       </header>
@@ -225,11 +229,11 @@ export default async function LangLayout({
       </footer>
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
-        <div className="mx-auto grid h-16 w-full max-w-5xl grid-cols-4 px-2">
+        <div className="mx-auto grid h-16 w-full max-w-5xl grid-cols-6 px-1">
           <NavLink
             href={`/${lang}`}
             exact
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
             activeClassName="text-zinc-950 dark:text-zinc-50"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -240,20 +244,44 @@ export default async function LangLayout({
 
           <NavLink
             href={`/${lang}/drugs`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
             activeClassName="text-zinc-950 dark:text-zinc-50"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 7h16" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M4 12h16" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             {t(lang, "drugsNav")}
           </NavLink>
 
           <NavLink
+            href={`/${lang}/companies`}
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+            activeClassName="text-zinc-950 dark:text-zinc-50"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M6 21V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {t(lang, "companiesTitle")}
+          </NavLink>
+
+          <NavLink
+            href={`/${lang}/active-ingredients`}
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+            activeClassName="text-zinc-950 dark:text-zinc-50"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M8 8h8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {t(lang, "activeIngredientsTitle")}
+          </NavLink>
+
+          <NavLink
             href={`/${lang}/articles`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
             activeClassName="text-zinc-950 dark:text-zinc-50"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -269,7 +297,7 @@ export default async function LangLayout({
 
           <NavLink
             href={`/${lang}/faq`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
             activeClassName="text-zinc-950 dark:text-zinc-50"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
