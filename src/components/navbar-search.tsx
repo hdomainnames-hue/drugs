@@ -37,7 +37,7 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
   };
 
   return (
-    <div className="relative hidden sm:block">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -53,11 +53,19 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
       </button>
 
       {open ? (
-        <div
-          id={panelId}
-          className="absolute top-full z-50 mt-2 w-88 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
-          style={{ [lang === "ar" ? "right" : "left"]: 0 } as CSSProperties}
-        >
+        <>
+          <button
+            type="button"
+            aria-label={t(lang, "close")}
+            className="fixed inset-0 z-40 cursor-default bg-black/30 sm:bg-transparent"
+            onClick={() => setOpen(false)}
+          />
+
+          <div
+            id={panelId}
+            className="fixed left-4 right-4 top-16 z-50 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl dark:border-zinc-800 dark:bg-zinc-950 sm:absolute sm:left-auto sm:right-auto sm:top-full sm:mt-2 sm:w-88"
+            style={{ [lang === "ar" ? "right" : "left"]: 0 } as CSSProperties}
+          >
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -99,7 +107,8 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
               {t(lang, "drugsNav")}
             </button>
           </div>
-        </div>
+          </div>
+        </>
       ) : null}
     </div>
   );

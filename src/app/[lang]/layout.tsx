@@ -83,59 +83,118 @@ export default async function LangLayout({
             {t(lang, "siteName")}
           </Link>
 
-          <div className={`flex items-center gap-2 ${lang === "ar" ? "sm:flex-row-reverse" : ""}`}>
-            <nav className="hidden items-center gap-4 text-sm sm:flex">
-              <NavLink
-                href={`/${lang}`}
-                exact
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "homeNav")}
-              </NavLink>
-              <NavLink
-                href={`/${lang}/drugs`}
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "drugsNav")}
-              </NavLink>
-              <NavLink
-                href={`/${lang}/companies`}
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "companiesTitle")}
-              </NavLink>
-              <NavLink
-                href={`/${lang}/active-ingredients`}
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "activeIngredientsTitle")}
-              </NavLink>
-              <NavLink
-                href={`/${lang}/articles`}
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "articlesNav")}
-              </NavLink>
-              <NavLink
-                href={`/${lang}/faq`}
-                className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
-              >
-                {t(lang, "faqNav")}
-              </NavLink>
-            </nav>
+          <div className="flex items-center gap-2">
+            {lang === "ar" ? (
+              <>
+                <nav className="hidden items-center gap-4 text-sm sm:flex">
+                  <NavLink
+                    href={`/${lang}`}
+                    exact
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "homeNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/drugs`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "drugsNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/companies`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "companiesTitle")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/active-ingredients`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "activeIngredientsTitle")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/articles`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "articlesNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/faq`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "faqNav")}
+                  </NavLink>
+                </nav>
 
-            <div className="flex items-center gap-2">
-              <NavbarSearch lang={lang} />
-              <LanguageToggle lang={lang} />
-              <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
-              <MobileMenu lang={lang} />
-            </div>
+                <div className="flex items-center gap-2">
+                  <NavbarSearch lang={lang} />
+                  <LanguageToggle lang={lang} />
+                  <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
+                  <MobileMenu lang={lang} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <NavbarSearch lang={lang} />
+                  <LanguageToggle lang={lang} />
+                  <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
+                  <MobileMenu lang={lang} />
+                </div>
+
+                <nav className="hidden items-center gap-4 text-sm sm:flex">
+                  <NavLink
+                    href={`/${lang}`}
+                    exact
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "homeNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/drugs`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "drugsNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/companies`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "companiesTitle")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/active-ingredients`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "activeIngredientsTitle")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/articles`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "articlesNav")}
+                  </NavLink>
+                  <NavLink
+                    href={`/${lang}/faq`}
+                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                  >
+                    {t(lang, "faqNav")}
+                  </NavLink>
+                </nav>
+              </>
+            )}
           </div>
         </div>
       </header>
