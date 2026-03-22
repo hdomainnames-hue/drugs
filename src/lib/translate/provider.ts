@@ -1,4 +1,5 @@
 import { geminiTranslateText, getGeminiKeysFromEnv } from "./gemini";
+import { prisma } from "@/lib/prisma";
 
 export type TranslateContext = {
   entityType?: string;
@@ -9,9 +10,83 @@ export type TranslateContext = {
 /**
  * Gemini Translation Wrapper
  */
+type TranslateSettings = {
+  activeProvider?: "gemini" | "groq";
+  geminiApiKeys?: string[];
+  groqApiKeys?: string[];
+  geminiModel?: string;
+  groqModel?: string;
+  activeGeminiKeyIndex?: number;
+};
+
+let settingsCache:
+  | {
+      at: number;
+      value: TranslateSettings;
+    }
+  | null = null;
+
+async function getTranslateSettings(): Promise<TranslateSettings> {
+  const now = Date.now();
+  if (settingsCache && now - settingsCache.at < 30_000) return settingsCache.value;
+
+  const keys = [
+    "translate_active_provider",
+    "translate_gemini_api_keys",
+    "translate_groq_api_keys",
+    "translate_gemini_model",
+    "translate_groq_model",
+    "translate_active_gemini_key_index",
+  ];
+
+  const rows = await prisma.siteSetting.findMany({
+    where: { key: { in: keys } },
+    select: { key: true, value: true },
+  });
+  const map = new Map(rows.map((r) => [r.key, r.value]));
+
+  const normalizeKeyList = (raw: string | undefined) =>
+    (raw ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+  const activeProviderRaw = (map.get("translate_active_provider") ?? "").trim().toLowerCase();
+  const activeProvider = activeProviderRaw === "groq" ? "groq" : activeProviderRaw === "gemini" ? "gemini" : undefined;
+
+  const activeGeminiKeyIndex = (() => {
+    const raw = (map.get("translate_active_gemini_key_index") ?? "").trim();
+    if (!raw) return undefined;
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0) return undefined;
+    return n;
+  })();
+
+  const value: TranslateSettings = {
+    activeProvider,
+    geminiApiKeys: normalizeKeyList(map.get("translate_gemini_api_keys")),
+    groqApiKeys: normalizeKeyList(map.get("translate_groq_api_keys")),
+    geminiModel: (map.get("translate_gemini_model") ?? "").trim() || undefined,
+    groqModel: (map.get("translate_groq_model") ?? "").trim() || undefined,
+    activeGeminiKeyIndex,
+  };
+
+  settingsCache = { at: now, value };
+  return value;
+}
+
 async function translateWithGemini(text: string): Promise<string> {
-  const keys = getGeminiKeysFromEnv();
-  return geminiTranslateText({ apiKeys: keys, text, targetLang: "ar" as const });
+  const settings = await getTranslateSettings();
+  const fromDb = settings.geminiApiKeys?.length ? settings.geminiApiKeys : undefined;
+  const envKeys = getGeminiKeysFromEnv();
+  const keys = fromDb?.length ? fromDb : envKeys;
+  const chosenKeys =
+    typeof settings.activeGeminiKeyIndex === "number" && keys[settings.activeGeminiKeyIndex]
+      ? [keys[settings.activeGeminiKeyIndex]]
+      : keys;
+
+  if (settings.geminiModel) process.env.GEMINI_MODEL = settings.geminiModel;
+  return geminiTranslateText({ apiKeys: chosenKeys, text, targetLang: "ar" as const });
 }
 
 function normalizeUnicode(s: string) {
@@ -40,6 +115,13 @@ function cleanupArabicOutput(s: string) {
   );
   // Remove any remaining zero-width and control characters
   out = out.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F]/g, "");
+
+  // Remove CJK / Hangul / Kana characters that should never appear in Arabic output
+  out = out.replace(/[\u3400-\u9FFF\u3040-\u30FF\u31F0-\u31FF\uAC00-\uD7AF]/g, "");
+
+  // If a model prepends a stray standalone "ي" at the beginning of a line due to mixed-script leakage, remove it.
+  out = out.replace(/(^|\n)\s*ي\s+(?=[\u0600-\u06FF])/g, "$1");
+
   // Collapse extra spaces created by removals
   out = out.replace(/[ \t]{2,}/g, " ").trim();
 
@@ -92,15 +174,19 @@ function buildGroqMessages(text: string, ctx: TranslateContext) {
  * Groq Translation Provider (Placeholder for future implementation)
  */
 async function translateWithGroq(text: string, ctx: TranslateContext): Promise<string> {
-  const apiKeysStr = process.env.GROQ_API_KEY || "";
-  const apiKeys = apiKeysStr.split(",").map(k => k.trim()).filter(Boolean);
+  const settings = await getTranslateSettings();
+  const apiKeys = (settings.groqApiKeys?.length ? settings.groqApiKeys : undefined) ??
+    (process.env.GROQ_API_KEY || "")
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
   
   if (apiKeys.length === 0) throw new Error("GROQ_API_KEY not configured");
 
   // Simple rotation/randomization for Groq keys
   const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
-  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+  const model = settings.groqModel || process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
   const url = "https://api.groq.com/openai/v1/chat/completions";
 
   const { system, user } = buildGroqMessages(text, ctx);
@@ -136,10 +222,13 @@ async function translateWithGroq(text: string, ctx: TranslateContext): Promise<s
  * Orchestrates translation using available providers with fallback logic
  */
 export async function translateText(text: string, ctx: TranslateContext): Promise<string> {
+  const settings = await getTranslateSettings();
   const skipGemini = ctx.field === "name" || ctx.field === "company";
+  const forceGroq = settings.activeProvider === "groq";
+  const forceGemini = settings.activeProvider === "gemini";
 
   // 1. Try Gemini first (preferred)
-  if (!skipGemini) {
+  if (!forceGroq && (forceGemini || !skipGemini)) {
     try {
       const geminiResult = await translateWithGemini(text);
       if (geminiResult && geminiResult !== text) return geminiResult;
@@ -149,7 +238,7 @@ export async function translateText(text: string, ctx: TranslateContext): Promis
   }
 
   // 2. Try Groq as fallback if key is available
-  if (process.env.GROQ_API_KEY) {
+  if (forceGroq || settings.groqApiKeys?.length || process.env.GROQ_API_KEY) {
     try {
       const groqResult = await translateWithGroq(text, ctx);
       if (groqResult && groqResult !== text) return groqResult;

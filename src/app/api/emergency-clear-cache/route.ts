@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 
 // EMERGENCY: This route is TEMPORARY to clear cache when Basic Auth fails.
 // It uses a hardcoded secret from env to verify the request.
-export async function GET(req: Request) {
+async function handle(req: Request) {
   const url = new URL(req.url);
   const secret = url.searchParams.get("secret");
   const lang = url.searchParams.get("lang") || "ar";
@@ -30,4 +30,12 @@ export async function GET(req: Request) {
   } catch (error: any) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
+}
+
+export async function GET(req: Request) {
+  return handle(req);
+}
+
+export async function POST(req: Request) {
+  return handle(req);
 }
