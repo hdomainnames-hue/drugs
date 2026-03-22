@@ -250,7 +250,14 @@ export default async function DrugDetailPage({
       .map((s) => ({ title: s.title, body: s.bodyLines.join("\n").trim() }))
       .filter((s) => s.body);
 
-    if (cleaned.length <= 1) return [{ title: defaultTitle, body: raw }];
+    if (cleaned.length <= 1) {
+      const paras = raw
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      if (paras.length <= 1) return [{ title: defaultTitle, body: raw }];
+      return paras.map((p, idx) => ({ title: idx === 0 ? defaultTitle : `${defaultTitle} (${idx + 1})`, body: p }));
+    }
     return cleaned;
   })();
 
@@ -355,7 +362,7 @@ export default async function DrugDetailPage({
             </div>
           </section>
 
-          {drug.description
+          {descriptionSections.length
             ? descriptionSections.map((s, idx) => (
                 <section
                   key={`${idx}-${s.title}`}
@@ -378,7 +385,7 @@ export default async function DrugDetailPage({
                     href={`/${lang}/drug/${s.toDrug.remoteId}`}
                     className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className={`flex items-start gap-3 ${lang === "ar" ? "flex-row-reverse" : ""}`}>
                       {(() => {
                         const src = s.toDrug.imageSourceUrl || s.toDrug.imageLocalPath;
                         const thumb = !src

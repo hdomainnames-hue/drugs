@@ -223,6 +223,9 @@ function buildGroqMessages(text: string, ctx: TranslateContext) {
     "Do not add any extra information, warnings, or commentary. " +
     "Preserve numbers, units, dosages (mg, mL, mcg, IU), frequencies, and drug names as proper nouns. " +
     "Avoid Latin letters in the output except for standard units (mg, mL, mcg, IU, %, °C) and universally written abbreviations when required. " +
+    "Use a professional clinical style suitable for patient information leaflets. " +
+    "Prefer concise, medically accurate phrasing. Avoid colloquial wording. " +
+    "If the input contains headings or label-like lines, keep them as clear Arabic medical headings. " +
     "Keep list formatting (one item per line) when the input is a list. " +
     "Use these preferred medical terms when applicable: " +
     "Indication=دواعي الاستعمال; Indications=دواعي الاستعمال; " +
