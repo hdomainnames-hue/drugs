@@ -85,6 +85,20 @@ export default function MobileMenu({ lang }: { lang: Lang }) {
                   {t(lang, "drugsNav")}
                 </Link>
                 <Link
+                  href={`/${lang}/companies`}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                >
+                  {t(lang, "companiesTitle")}
+                </Link>
+                <Link
+                  href={`/${lang}/active-ingredients`}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                >
+                  {t(lang, "activeIngredientsTitle")}
+                </Link>
+                <Link
                   href={`/${lang}/articles`}
                   onClick={() => setOpen(false)}
                   className="block rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"

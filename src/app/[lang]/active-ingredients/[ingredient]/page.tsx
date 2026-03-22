@@ -29,19 +29,37 @@ export async function generateMetadata({
 
 export default async function ActiveIngredientDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; ingredient: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { lang: raw, ingredient } = await params;
   const lang: Lang = isLang(raw) ? raw : "ar";
   const ingredientName = decodeURIComponent(ingredient);
 
-  const items = await prisma.drug.findMany({
+  const sp = await searchParams;
+  const pageRaw = Array.isArray(sp.page) ? sp.page[0] : sp.page;
+  const page = (() => {
+    const n = Number.parseInt(String(pageRaw ?? ""), 10);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  })();
+  const pageSize = 30;
+  const skip = (page - 1) * pageSize;
+
+  const [items, total, ingredientTitleTr] = await Promise.all([
+    prisma.drug.findMany({
     where: { activeIngredient: ingredientName },
     orderBy: { remoteId: "asc" },
-    take: 5000,
+    skip,
+    take: pageSize,
     select: { remoteId: true, name: true, company: true, activeIngredient: true, price: true },
-  });
+    }),
+    prisma.drug.count({ where: { activeIngredient: ingredientName } }),
+    getOrTranslateFields(lang, [
+      { entityType: "Drug" as const, entityId: `ai:${ingredientName}`, field: "activeIngredient", sourceText: ingredientName },
+    ]),
+  ]);
 
   const translations = await getOrTranslateFields(
     lang,
@@ -52,15 +70,22 @@ export default async function ActiveIngredientDetailPage({
     ]),
   );
 
+  const ingredientTitle =
+    lang === "ar" ? ingredientTitleTr[`Drug:ai:${ingredientName}:activeIngredient`] ?? t(lang, "translationPending") : ingredientName;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const prevPage = page > 1 ? page - 1 : null;
+  const nextPage = page < totalPages ? page + 1 : null;
+  const buildHref = (p: number) => `/${lang}/active-ingredients/${encodeURIComponent(ingredientName)}?page=${p}`;
+
   return (
     <div className="flex-1">
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{ingredientName}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">{ingredientTitle}</h1>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {t(lang, "totalResults")}: {items.length.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
+                {t(lang, "totalResults")}: {total.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
               </p>
             </div>
             <Link
@@ -104,6 +129,35 @@ export default async function ActiveIngredientDetailPage({
                 </Link>
               );
             })}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              {t(lang, "page")} {page} {t(lang, "of")} {totalPages}
+            </div>
+            <div className="flex gap-2">
+              {prevPage ? (
+                <Link
+                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                  href={buildHref(prevPage)}
+                >
+                  {t(lang, "prev")}
+                </Link>
+              ) : (
+                <span className="rounded-xl border border-transparent px-4 py-2 text-sm text-zinc-400">{t(lang, "prev")}</span>
+              )}
+
+              {nextPage ? (
+                <Link
+                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                  href={buildHref(nextPage)}
+                >
+                  {t(lang, "next")}
+                </Link>
+              ) : (
+                <span className="rounded-xl border border-transparent px-4 py-2 text-sm text-zinc-400">{t(lang, "next")}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

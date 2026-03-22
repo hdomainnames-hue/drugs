@@ -197,7 +197,7 @@ function cleanupArabicOutput(s: string) {
 }
 
 function buildGroqMessages(text: string, ctx: TranslateContext) {
-  const isNameLike = ctx.field === "name" || ctx.field === "company";
+  const isNameLike = ctx.field === "name" || ctx.field === "company" || ctx.field === "activeIngredient";
 
   if (isNameLike) {
     const system =
@@ -229,15 +229,26 @@ function buildGroqMessages(text: string, ctx: TranslateContext) {
     "Keep list formatting (one item per line) when the input is a list. " +
     "Use these preferred medical terms when applicable: " +
     "Mechanism of Action=آلية العمل; MoA=آلية العمل; " +
+    "Mechanism=الآلية; Mechanistic=آلي; " +
     "Administration=طريقة الاستعمال; How to use=طريقة الاستعمال; " +
     "Dosage=الجرعة; Dosing=الجرعات; " +
+    "Dose=جرعة; Dose adjustment=تعديل الجرعة; " +
+    "Frequency=معدل التكرار; Once daily=مرة واحدة يومياً; Twice daily=مرتين يومياً; " +
     "Precautions=احتياطات; Warnings=تحذيرات; " +
+    "Overdose=جرعة زائدة; " +
     "Drug Interactions=التداخلات الدوائية; Interactions=التداخلات الدوائية; " +
     "Adverse Effects=الآثار الجانبية; Side Effects=الآثار الجانبية; " +
+    "Common=شائع; Rare=نادر; " +
     "Contraindications=موانع الاستعمال; " +
+    "Contraindicated=مضاد استطباب; " +
     "Storage=الحفظ; " +
     "Pregnancy and Lactation=الحمل والرضاعة; " +
     "Indication=دواعي الاستعمال; Indications=دواعي الاستعمال; " +
+    "Therapeutic class=الفئة العلاجية; Pharmacological class=الفئة الدوائية; " +
+    "Onset=بدء التأثير; Duration=مدة التأثير; " +
+    "Half-life=نصف العمر; Metabolism=الأيض; Excretion=الإطراح; " +
+    "Renal impairment=قصور كلوي; Hepatic impairment=قصور كبدي; " +
+    "Pediatric=الأطفال; Geriatric=كبار السن; " +
     "runny nose=سيلان الأنف; blocked nose=احتقان الأنف; sinus=الجيوب الأنفية; " +
     "sneezing=العطاس; watery itchy eyes=حكة ودمع العينين; sinus pain=ألم الجيوب الأنفية; " +
     "fever=حمّى; headache=صداع; body aches=آلام الجسم; body aches & pain=آلام الجسم. " +

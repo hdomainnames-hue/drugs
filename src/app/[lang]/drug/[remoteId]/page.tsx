@@ -145,9 +145,11 @@ export default async function DrugDetailPage({
 
   const drugName =
     lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:name`] ?? t(lang, "translationPending") : drug.name;
-  const company = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:company`] ?? "" : drug.company || "";
-  const activeIngredient =
-    lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:activeIngredient`] ?? "" : drug.activeIngredient || "";
+  const rawCompany = drug.company || "";
+  const rawActiveIngredient = drug.activeIngredient || "";
+
+  const company = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:company`] ?? "" : rawCompany;
+  const activeIngredient = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:activeIngredient`] ?? "" : rawActiveIngredient;
   const descriptionText =
     lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:description`] ?? "" : drug.description || "";
 
@@ -221,8 +223,18 @@ export default async function DrugDetailPage({
         .trim()
         .replace(/^[-*#\s]+/, "")
         .replace(/[:：]+\s*$/, "")
-        .replace(/^ميكانيكية\s+العمل$/g, "آلية العمل")
+        .replace(/ميكانيكية\s+العمل/g, "آلية العمل")
         .trim();
+
+    const splitInlineHeading = (line: string) => {
+      const l = line.trim();
+      if (!l) return null as null | { title: string; rest: string };
+      const m = l.match(
+        /^(الوصف|مقدمة|معلومات|الاستعمالات|دواعي الاستعمال|الاستطبابات|الجرعة|الجرعات|طريقة الاستعمال|آلية العمل|ميكانيكية العمل|التحذيرات|احتياطات|التداخلات الدوائية|الآثار الجانبية|الأعراض الجانبية|موانع الاستعمال|الحفظ|التخزين|الحمل والرضاعة)\s*[:：]\s*(.*)$/,
+      );
+      if (!m) return null;
+      return { title: normalizeTitle(m[1] || ""), rest: (m[2] || "").trim() };
+    };
 
     const isHeading = (line: string) => {
       const l = line.trim();
@@ -241,6 +253,13 @@ export default async function DrugDetailPage({
     };
 
     for (const line of lines) {
+      const inline = splitInlineHeading(line);
+      if (inline) {
+        if (current.bodyLines.join("\n").trim()) sections.push(current);
+        current = { title: inline.title || defaultTitle, bodyLines: [] };
+        if (inline.rest) current.bodyLines.push(inline.rest);
+        continue;
+      }
       if (isHeading(line)) {
         const title = normalizeTitle(line.replace(/^#{1,6}\s+/, "").replace(/^\*\*|\*\*$/g, ""));
         if (current.bodyLines.join("\n").trim()) sections.push(current);
@@ -323,15 +342,29 @@ export default async function DrugDetailPage({
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                    {company || "-"}
-                  </div>
+                  {rawCompany ? (
+                    <Link
+                      href={`/${lang}/companies/${encodeURIComponent(rawCompany)}`}
+                      className="mt-1 block min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere hover:underline dark:text-zinc-50"
+                    >
+                      {company || rawCompany}
+                    </Link>
+                  ) : (
+                    <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                  )}
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
                   <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                    {activeIngredient || "-"}
-                  </div>
+                  {rawActiveIngredient ? (
+                    <Link
+                      href={`/${lang}/active-ingredients/${encodeURIComponent(rawActiveIngredient)}`}
+                      className="mt-1 block min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere hover:underline dark:text-zinc-50"
+                    >
+                      {activeIngredient || rawActiveIngredient}
+                    </Link>
+                  ) : (
+                    <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                  )}
                 </div>
               </div>
 
@@ -347,15 +380,29 @@ export default async function DrugDetailPage({
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                  {company || "-"}
-                </div>
+                {rawCompany ? (
+                  <Link
+                    href={`/${lang}/companies/${encodeURIComponent(rawCompany)}`}
+                    className="mt-1 block min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere hover:underline dark:text-zinc-50"
+                  >
+                    {company || rawCompany}
+                  </Link>
+                ) : (
+                  <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                )}
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                  {activeIngredient || "-"}
-                </div>
+                {rawActiveIngredient ? (
+                  <Link
+                    href={`/${lang}/active-ingredients/${encodeURIComponent(rawActiveIngredient)}`}
+                    className="mt-1 block min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere hover:underline dark:text-zinc-50"
+                  >
+                    {activeIngredient || rawActiveIngredient}
+                  </Link>
+                ) : (
+                  <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                )}
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
