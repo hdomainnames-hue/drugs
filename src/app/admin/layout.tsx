@@ -44,6 +44,12 @@ export default function AdminLayout({
               الإعدادات
             </Link>
             <Link
+              href="/admin/messages"
+              className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+            >
+              الرسائل
+            </Link>
+            <Link
               href="/ar"
               className="rounded-lg px-2 py-1 text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-200"
             >

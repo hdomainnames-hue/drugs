@@ -134,6 +134,17 @@ export default async function LangLayout({
 
                 <div className="flex items-center gap-2">
                   <NavbarSearch lang={lang} />
+                  <Link
+                    href={`/${lang}/contact`}
+                    aria-label={t(lang, "footerContact")}
+                    title={t(lang, "footerContact")}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M4 4h16v16H4V4Z" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="m4 7 8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
                   <LanguageToggle lang={lang} />
                   <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
                   <MobileMenu lang={lang} />
@@ -141,13 +152,6 @@ export default async function LangLayout({
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2">
-                  <NavbarSearch lang={lang} />
-                  <LanguageToggle lang={lang} />
-                  <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
-                  <MobileMenu lang={lang} />
-                </div>
-
                 <nav className="hidden items-center gap-4 text-sm sm:flex">
                   <NavLink
                     href={`/${lang}`}
@@ -193,6 +197,24 @@ export default async function LangLayout({
                     {t(lang, "faqNav")}
                   </NavLink>
                 </nav>
+
+                <div className="flex items-center gap-2">
+                  <NavbarSearch lang={lang} />
+                  <Link
+                    href={`/${lang}/contact`}
+                    aria-label={t(lang, "footerContact")}
+                    title={t(lang, "footerContact")}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M4 4h16v16H4V4Z" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="m4 7 8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                  <LanguageToggle lang={lang} />
+                  <ThemeToggle lightLabel={t(lang, "themeLight")} darkLabel={t(lang, "themeDark")} />
+                  <MobileMenu lang={lang} />
+                </div>
               </>
             )}
           </div>

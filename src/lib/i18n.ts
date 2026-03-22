@@ -74,6 +74,14 @@ const dict = {
     contactTitle: "اتصل بنا",
     contactBody:
       "للتواصل بخصوص محتوى الموقع أو الإبلاغ عن خطأ، يمكنك مراسلتنا عبر البريد الإلكتروني المذكور في إعدادات الموقع لاحقًا.",
+    contactName: "الاسم (اختياري)",
+    contactEmail: "البريد الإلكتروني (اختياري)",
+    contactSubject: "الموضوع (اختياري)",
+    contactMessage: "رسالتك",
+    contactSend: "إرسال الرسالة",
+    contactSending: "جارٍ الإرسال...",
+    contactSendSuccess: "تم إرسال رسالتك بنجاح. سنرد عليك في أقرب وقت.",
+    contactSendError: "تعذر إرسال الرسالة. حاول مرة أخرى.",
     privacyTitle: "سياسة الخصوصية",
     privacyBody:
       "نحترم خصوصيتك. قد نستخدم ملفات تعريف الارتباط لتحسين التجربة وقياس الأداء. لا نبيع بياناتك الشخصية.",
@@ -163,6 +171,14 @@ const dict = {
     contactTitle: "Contact",
     contactBody:
       "For content inquiries or to report an issue, please contact us via the site email (to be configured).",
+    contactName: "Name (optional)",
+    contactEmail: "Email (optional)",
+    contactSubject: "Subject (optional)",
+    contactMessage: "Message",
+    contactSend: "Send message",
+    contactSending: "Sending...",
+    contactSendSuccess: "Your message has been sent successfully.",
+    contactSendError: "Could not send message. Please try again.",
     privacyTitle: "Privacy Policy",
     privacyBody:
       "We respect your privacy. We may use cookies for analytics and improving the experience. We do not sell personal data.",
