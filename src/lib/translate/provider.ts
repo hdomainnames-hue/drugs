@@ -153,11 +153,22 @@ function cleanupArabicOutput(s: string) {
     .replace(/^\s*["']|["']\s*$/g, "")
     .trim();
 
-  // Fix mixed-script words like: "السالmonلا" by transliterating embedded Latin fragments
+  // Fix mixed-script words (Arabic+Latin) by transliterating Latin fragments
   // to a rough Arabic approximation instead of deleting (prevents context loss).
-  out = out.replace(/([\u0600-\u06FF]+)([a-zA-Z]{1,12})([\u0600-\u06FF]+)/g, (_m, a, latin, b) => {
-    return `${a}${latinToArabicApprox(String(latin))}${b}`;
-  });
+  // Examples:
+  // - "السالmonلا" -> "السالمونلا"
+  // - "باراسيتامol" -> "باراسيتامول"
+  // - "paraسيتامول" -> "باراسيتامول"
+  out = out
+    .replace(/([\u0600-\u06FF]+)([a-zA-Z]{1,16})([\u0600-\u06FF]+)/g, (_m, a, latin, b) => {
+      return `${a}${latinToArabicApprox(String(latin))}${b}`;
+    })
+    .replace(/([\u0600-\u06FF]+)([a-zA-Z]{1,16})/g, (_m, a, latin) => {
+      return `${a}${latinToArabicApprox(String(latin))}`;
+    })
+    .replace(/([a-zA-Z]{1,16})([\u0600-\u06FF]+)/g, (_m, latin, b) => {
+      return `${latinToArabicApprox(String(latin))}${b}`;
+    });
 
   // Remove stray standalone Latin words that sometimes leak into Arabic output.
   // Keep typical dosage/units patterns and common clinical abbreviations.
@@ -211,6 +222,7 @@ function buildGroqMessages(text: string, ctx: TranslateContext) {
     "Translate faithfully to Modern Standard Arabic using correct clinical terminology. " +
     "Do not add any extra information, warnings, or commentary. " +
     "Preserve numbers, units, dosages (mg, mL, mcg, IU), frequencies, and drug names as proper nouns. " +
+    "Avoid Latin letters in the output except for standard units (mg, mL, mcg, IU, %, °C) and universally written abbreviations when required. " +
     "Keep list formatting (one item per line) when the input is a list. " +
     "Use these preferred medical terms when applicable: " +
     "Indication=دواعي الاستعمال; Indications=دواعي الاستعمال; " +
