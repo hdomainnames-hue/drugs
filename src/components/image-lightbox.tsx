@@ -34,12 +34,28 @@ export function ImageLightbox({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={className}
+        className={`relative group ${className ?? ""}`}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? titleId : undefined}
       >
         <img src={src} alt={alt} className={imgClassName} loading="lazy" />
+
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white/80 text-zinc-700 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 dark:border-zinc-800 dark:bg-black/60 dark:text-zinc-200"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
+            <path
+              d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path d="M16.5 16.5 21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M10.5 8v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M8 10.5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </span>
       </button>
 
       {open ? (

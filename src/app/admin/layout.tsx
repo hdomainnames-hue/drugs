@@ -20,6 +20,12 @@ export default function AdminLayout({
               الأدوية
             </Link>
             <Link
+              href="/admin/users"
+              className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+            >
+              المستخدمون
+            </Link>
+            <Link
               href="/admin/articles"
               className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
             >

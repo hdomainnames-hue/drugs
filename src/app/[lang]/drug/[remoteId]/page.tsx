@@ -17,6 +17,8 @@ type SimilarEdge = Prisma.DrugSimilarGetPayload<{
         name: true;
         company: true;
         activeIngredient: true;
+        imageSourceUrl: true;
+        imageLocalPath: true;
       };
     };
   };
@@ -119,6 +121,8 @@ export default async function DrugDetailPage({
           name: true,
           company: true,
           activeIngredient: true,
+          imageSourceUrl: true,
+          imageLocalPath: true,
         },
       },
     },
@@ -374,15 +378,40 @@ export default async function DrugDetailPage({
                     href={`/${lang}/drug/${s.toDrug.remoteId}`}
                     className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
                   >
-                    <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                      {trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
-                    </div>
-                    <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                      <div>
-                        {t(lang, "company")}: {trSimilar(s.toDrug.remoteId, "company", s.toDrug.company || "-")}
-                      </div>
-                      <div>
-                        {t(lang, "activeIngredient")}: {trSimilar(s.toDrug.remoteId, "activeIngredient", s.toDrug.activeIngredient || "-")}
+                    <div className="flex items-start gap-3">
+                      {(() => {
+                        const src = s.toDrug.imageSourceUrl || s.toDrug.imageLocalPath;
+                        const thumb = !src
+                          ? null
+                          : src.startsWith("http://") || src.startsWith("https://")
+                            ? src
+                            : src.startsWith("/")
+                              ? src
+                              : null;
+                        return thumb ? (
+                          <img
+                            src={thumb}
+                            alt={trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
+                            loading="lazy"
+                            className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                        );
+                      })()}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                          {trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
+                        </div>
+                        <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                          <div>
+                            {t(lang, "company")}: {trSimilar(s.toDrug.remoteId, "company", s.toDrug.company || "-")}
+                          </div>
+                          <div>
+                            {t(lang, "activeIngredient")}: {trSimilar(s.toDrug.remoteId, "activeIngredient", s.toDrug.activeIngredient || "-")}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Link>

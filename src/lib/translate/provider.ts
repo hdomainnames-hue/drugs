@@ -96,6 +96,53 @@ function normalizeUnicode(s: string) {
   return nfkc;
 }
 
+function latinToArabicApprox(s: string) {
+  const lower = s.toLowerCase();
+
+  // Handle common digraphs first
+  let out = lower
+    .replace(/ph/g, "ف")
+    .replace(/sh/g, "ش")
+    .replace(/ch/g, "تش")
+    .replace(/th/g, "ث")
+    .replace(/kh/g, "خ")
+    .replace(/gh/g, "غ")
+    .replace(/ck/g, "ك")
+    .replace(/qu/g, "كو");
+
+  const map: Record<string, string> = {
+    a: "ا",
+    b: "ب",
+    c: "ك",
+    d: "د",
+    e: "ي",
+    f: "ف",
+    g: "ج",
+    h: "ه",
+    i: "ي",
+    j: "ج",
+    k: "ك",
+    l: "ل",
+    m: "م",
+    n: "ن",
+    o: "و",
+    p: "ب",
+    q: "ق",
+    r: "ر",
+    s: "س",
+    t: "ت",
+    u: "و",
+    v: "ف",
+    w: "و",
+    x: "كس",
+    y: "ي",
+    z: "ز",
+  };
+
+  out = out.replace(/[a-z]/g, (ch) => map[ch] ?? "");
+  return out;
+}
+
 function cleanupArabicOutput(s: string) {
   let out = normalizeUnicode(s);
 
@@ -106,7 +153,13 @@ function cleanupArabicOutput(s: string) {
     .replace(/^\s*["']|["']\s*$/g, "")
     .trim();
 
-  // Remove stray Latin letters that sometimes leak into Arabic output.
+  // Fix mixed-script words like: "السالmonلا" by transliterating embedded Latin fragments
+  // to a rough Arabic approximation instead of deleting (prevents context loss).
+  out = out.replace(/([\u0600-\u06FF]+)([a-zA-Z]{1,12})([\u0600-\u06FF]+)/g, (_m, a, latin, b) => {
+    return `${a}${latinToArabicApprox(String(latin))}${b}`;
+  });
+
+  // Remove stray standalone Latin words that sometimes leak into Arabic output.
   // Keep typical dosage/units patterns and common clinical abbreviations.
   // NOTE: We keep them case-insensitive by normalizing NFKC above but preserve original case.
   out = out.replace(
@@ -123,7 +176,11 @@ function cleanupArabicOutput(s: string) {
   out = out.replace(/(^|\n)\s*ي\s+(?=[\u0600-\u06FF])/g, "$1");
 
   // Collapse extra spaces created by removals
-  out = out.replace(/[ \t]{2,}/g, " ").trim();
+  out = out
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([،.؛:])/g, "$1")
+    .replace(/([،؛:])\s*/g, "$1 ")
+    .trim();
 
   return out;
 }

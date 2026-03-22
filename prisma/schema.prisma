@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  editor
+  viewer
+}
+
 model Drug {
   id             BigInt   @id @default(autoincrement())
   remoteId       Int      @unique
@@ -91,4 +97,17 @@ model Translation {
 
   @@unique([entityType, entityId, field, lang])
   @@index([entityType, entityId, lang])
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(admin)
+  disabled     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([role, disabled])
 }
