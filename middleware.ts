@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     const user = process.env.ADMIN_USER;
     const pass = process.env.ADMIN_PASS;
 
