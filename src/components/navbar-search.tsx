@@ -111,8 +111,8 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
           </div>
 
           <div
-            className="absolute top-full z-50 mt-2 hidden w-88 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl dark:border-zinc-800 dark:bg-zinc-950 sm:block"
-            style={{ [lang === "ar" ? "right" : "left"]: 0 } as CSSProperties}
+            className="absolute top-full z-50 mt-2 hidden w-88 max-w-[calc(100vw-2rem)] rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl dark:border-zinc-800 dark:bg-zinc-950 sm:block"
+            style={{ [lang === "ar" ? "left" : "right"]: 0 } as CSSProperties}
           >
             <form
               onSubmit={(e) => {

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { getOrTranslateFields } from "@/lib/translate/translations";
+import SmartBackLink from "@/components/smart-back-link";
 
 export async function generateMetadata({
   params,
@@ -87,12 +88,7 @@ export default async function CompanyDetailPage({
                 {t(lang, "totalResults")}: {total.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
               </p>
             </div>
-            <Link
-              href={`/${lang}/companies`}
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
-            >
-              {t(lang, "backToSearch")}
-            </Link>
+            <SmartBackLink lang={lang} />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

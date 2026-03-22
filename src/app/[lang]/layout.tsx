@@ -310,19 +310,7 @@ export default async function LangLayout({
       </footer>
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
-        <div className="mx-auto grid h-16 w-full max-w-5xl grid-cols-6 px-1">
-          <NavLink
-            href={`/${lang}`}
-            exact
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "homeNav")}
-          </NavLink>
-
+        <div className="mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
           <NavLink
             href={`/${lang}/drugs`}
             className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
@@ -347,6 +335,21 @@ export default async function LangLayout({
             </svg>
             {t(lang, "companiesTitle")}
           </NavLink>
+
+          <div className="relative flex items-center justify-center">
+            <div className="pointer-events-none absolute -top-3 h-10 w-16 rounded-t-full bg-zinc-50/90 backdrop-blur dark:bg-black/80" />
+            <NavLink
+              href={`/${lang}`}
+              exact
+              className="relative -mt-5 flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-2xl border border-zinc-200 bg-white text-[10px] font-semibold text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+              activeClassName="text-zinc-950 dark:text-zinc-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {t(lang, "homeNav")}
+            </NavLink>
+          </div>
 
           <NavLink
             href={`/${lang}/active-ingredients`}
@@ -374,17 +377,6 @@ export default async function LangLayout({
               <path d="M3 18h.01" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             {t(lang, "articlesNav")}
-          </NavLink>
-
-          <NavLink
-            href={`/${lang}/faq`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "faqNav")}
           </NavLink>
         </div>
       </nav>

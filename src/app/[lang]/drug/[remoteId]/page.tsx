@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { ImageLightbox } from "@/components/image-lightbox";
+import SmartBackLink from "@/components/smart-back-link";
 import { getOrTranslateFields } from "@/lib/translate/translations";
 
 type SimilarEdge = Prisma.DrugSimilarGetPayload<{
@@ -301,12 +302,7 @@ export default async function DrugDetailPage({
         />
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-3">
-            <Link
-              href={`/${lang}/drugs`}
-              className="text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-            >
-              ← {t(lang, "backToSearch")}
-            </Link>
+            <SmartBackLink lang={lang} />
 
             <Link
               href={`/${otherLang}/drug/${drug.remoteId}`}
