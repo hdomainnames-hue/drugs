@@ -8,14 +8,14 @@ export default function NewArticlePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New article</h1>
-          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Create an Arabic or English article.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">مقال جديد</h1>
+          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">إنشاء مقال بالعربية أو الإنجليزية.</p>
         </div>
         <Link
           href="/admin/articles"
           className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
         >
-          Back
+          رجوع
         </Link>
       </div>
 
@@ -37,7 +37,7 @@ export default function NewArticlePage() {
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Language</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">اللغة</div>
             <select
               name="lang"
               defaultValue="ar"
@@ -49,7 +49,7 @@ export default function NewArticlePage() {
           </label>
 
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Slug</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">الرابط</div>
             <input
               name="slug"
               placeholder="example-article"
@@ -60,7 +60,7 @@ export default function NewArticlePage() {
         </div>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Title</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">العنوان</div>
           <input
             name="title"
             className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-3 text-sm dark:border-zinc-800 dark:bg-black"
@@ -69,7 +69,7 @@ export default function NewArticlePage() {
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Excerpt (optional)</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">ملخص (اختياري)</div>
           <textarea
             name="excerpt"
             rows={3}
@@ -78,7 +78,7 @@ export default function NewArticlePage() {
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Image URL (optional)</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">رابط الصورة (اختياري)</div>
           <input
             name="imageUrl"
             placeholder="https://..."
@@ -87,7 +87,7 @@ export default function NewArticlePage() {
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Content</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">المحتوى</div>
           <textarea
             name="content"
             rows={16}
@@ -98,7 +98,7 @@ export default function NewArticlePage() {
 
         <label className="mt-4 inline-flex items-center gap-2 text-sm">
           <input type="checkbox" name="published" className="h-4 w-4" />
-          Publish now
+          نشر الآن
         </label>
 
         <div className="mt-6 flex items-center justify-end">
@@ -106,7 +106,7 @@ export default function NewArticlePage() {
             type="submit"
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            Save
+            حفظ
           </button>
         </div>
       </form>

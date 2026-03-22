@@ -31,14 +31,14 @@ export default async function EditArticlePage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Edit article</h1>
-          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Update content and publishing status.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">تعديل مقال</h1>
+          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">تعديل المحتوى وحالة النشر.</p>
         </div>
         <Link
           href="/admin/articles"
           className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
         >
-          Back
+          رجوع
         </Link>
       </div>
 
@@ -61,7 +61,7 @@ export default async function EditArticlePage({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Language</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">اللغة</div>
             <select
               name="lang"
               defaultValue={article.lang === "en" ? "en" : "ar"}
@@ -73,7 +73,7 @@ export default async function EditArticlePage({
           </label>
 
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Slug</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">الرابط</div>
             <input
               name="slug"
               defaultValue={article.slug}
@@ -84,7 +84,7 @@ export default async function EditArticlePage({
         </div>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Title</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">العنوان</div>
           <input
             name="title"
             defaultValue={article.title}
@@ -94,7 +94,7 @@ export default async function EditArticlePage({
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Excerpt (optional)</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">ملخص (اختياري)</div>
           <textarea
             name="excerpt"
             defaultValue={article.excerpt ?? ""}
@@ -104,7 +104,7 @@ export default async function EditArticlePage({
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Image URL (optional)</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">رابط الصورة (اختياري)</div>
           <input
             name="imageUrl"
             defaultValue={article.imageUrl ?? ""}
@@ -114,7 +114,7 @@ export default async function EditArticlePage({
         </label>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Content</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">المحتوى</div>
           <textarea
             name="content"
             defaultValue={article.content}
@@ -126,7 +126,7 @@ export default async function EditArticlePage({
 
         <label className="mt-4 inline-flex items-center gap-2 text-sm">
           <input type="checkbox" name="published" defaultChecked={Boolean(article.publishedAt)} className="h-4 w-4" />
-          Published
+          منشور
         </label>
 
         <div className="mt-6 flex items-center justify-end">
@@ -134,7 +134,7 @@ export default async function EditArticlePage({
             type="submit"
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            Save changes
+            حفظ التغييرات
           </button>
         </div>
       </form>

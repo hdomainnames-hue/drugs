@@ -37,21 +37,21 @@ export default async function EditDrugPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Edit drug</h1>
-          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Update drug details for better SEO and clarity.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">تعديل دواء</h1>
+          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">تعديل بيانات الدواء لتحسين السيو والوضوح.</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/admin/drugs"
             className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
           >
-            Back
+            رجوع
           </Link>
           <Link
             href={`/ar/drug/${drug.remoteId}`}
             className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
           >
-            View
+            عرض
           </Link>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default async function EditDrugPage({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-2 sm:col-span-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Name</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">الاسم</div>
             <input
               name="name"
               defaultValue={drug.name}
@@ -84,7 +84,7 @@ export default async function EditDrugPage({
           </label>
 
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Company</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">الشركة</div>
             <input
               name="company"
               defaultValue={drug.company ?? ""}
@@ -93,7 +93,7 @@ export default async function EditDrugPage({
           </label>
 
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Active ingredient</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">المادة الفعالة</div>
             <input
               name="activeIngredient"
               defaultValue={drug.activeIngredient ?? ""}
@@ -102,7 +102,7 @@ export default async function EditDrugPage({
           </label>
 
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Price</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">السعر</div>
             <input
               name="price"
               defaultValue={drug.price ?? ""}
@@ -111,7 +111,7 @@ export default async function EditDrugPage({
           </label>
 
           <label className="space-y-2 sm:col-span-2">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Meta description (optional)</div>
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">وصف الميتا (اختياري)</div>
             <input
               name="metaDescription"
               defaultValue={drug.metaDescription ?? ""}
@@ -121,7 +121,7 @@ export default async function EditDrugPage({
         </div>
 
         <label className="mt-4 block space-y-2">
-          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Description (optional)</div>
+          <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">الوصف (اختياري)</div>
           <textarea
             name="description"
             defaultValue={drug.description ?? ""}
@@ -135,7 +135,7 @@ export default async function EditDrugPage({
             type="submit"
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            Save
+            حفظ
           </button>
         </div>
       </form>

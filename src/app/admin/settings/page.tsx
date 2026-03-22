@@ -23,6 +23,8 @@ export default async function AdminSettingsPage() {
 
   const map = new Map(settings.map((s) => [s.key, s.value]));
   const emergencySecret = process.env.ADMIN_PASS?.trim() || "";
+  const testText =
+    "Pseudoephedrine hydrochloride is a decongestant. Chlorpheniramine maleate is an antihistamine.";
 
   return (
     <div className="space-y-6">
@@ -75,6 +77,27 @@ export default async function AdminSettingsPage() {
           </a>
           <div className="text-xs leading-6 text-zinc-600 dark:text-zinc-400">
             سيتم تمرير <code>secret</code> تلقائيًا من <code>ADMIN_PASS</code>.
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="text-sm font-semibold">اختبار الترجمة</div>
+          <div className="mt-1 text-xs leading-6 text-zinc-600 dark:text-zinc-400">
+            هذه الروابط تستخدم API داخلي لاختبار المزوّد والمفتاح الفعّال، وتؤكد أن تنظيف الرموز الغريبة يعمل.
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href={`/api/admin/translate/test?field=description&text=${encodeURIComponent(testText)}`}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:hover:border-zinc-600"
+            >
+              اختبار (وصف)
+            </a>
+            <a
+              href={`/api/admin/translate/test?field=name&text=${encodeURIComponent("Clarinase 12 Hour")}`}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:hover:border-zinc-600"
+            >
+              اختبار (اسم/ترانسلِتيريشن)
+            </a>
           </div>
         </div>
 

@@ -14,23 +14,23 @@ export default async function AdminFaqPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">FAQ</h1>
-          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Manage frequently asked questions per language.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">الأسئلة الشائعة</h1>
+          <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">إدارة الأسئلة الشائعة لكل لغة.</p>
         </div>
         <Link
           href="/admin/faq/new"
           className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
         >
-          New FAQ
+          سؤال جديد
         </Link>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="grid grid-cols-12 gap-2 border-b border-zinc-200 px-4 py-3 text-xs font-semibold text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-          <div className="col-span-2">Lang</div>
-          <div className="col-span-1">Order</div>
-          <div className="col-span-7">Question</div>
-          <div className="col-span-2 text-right">Actions</div>
+          <div className="col-span-2">اللغة</div>
+          <div className="col-span-1">الترتيب</div>
+          <div className="col-span-7">السؤال</div>
+          <div className="col-span-2 text-right">إجراءات</div>
         </div>
 
         {faqs.length ? (
@@ -49,7 +49,7 @@ export default async function AdminFaqPage() {
                     href={`/admin/faq/${String(f.id)}`}
                     className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
                   >
-                    Edit
+                    تعديل
                   </Link>
                   <form
                     action={async () => {
@@ -61,7 +61,7 @@ export default async function AdminFaqPage() {
                       type="submit"
                       className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:border-red-300 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
                     >
-                      Delete
+                      حذف
                     </button>
                   </form>
                 </div>
@@ -69,7 +69,7 @@ export default async function AdminFaqPage() {
             ))}
           </div>
         ) : (
-          <div className="p-6 text-sm text-zinc-600 dark:text-zinc-400">No FAQs yet.</div>
+          <div className="p-6 text-sm text-zinc-600 dark:text-zinc-400">لا توجد أسئلة بعد.</div>
         )}
       </div>
     </div>
