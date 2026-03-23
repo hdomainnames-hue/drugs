@@ -87,14 +87,14 @@ export default function ContactForm({ lang }: { lang: Lang }) {
       </label>
 
       {error ? <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">{error}</div> : null}
-      {success ? <div className="rounded-2xl border border-zinc-200 bg-white p-3 text-xs text-(--brand) dark:border-zinc-800 dark:bg-zinc-950 dark:text-(--brand)">{success}</div> : null}
+      {success ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">{success}</div> : null}
 
       <div className="flex items-center justify-end">
         <button
           type="button"
           onClick={submit}
           disabled={loading}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-(--brand) px-4 text-sm font-semibold text-white hover:bg-(--brand-hover) disabled:opacity-60"
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
         >
           {loading ? t(lang, "contactSending") : t(lang, "contactSend")}
         </button>

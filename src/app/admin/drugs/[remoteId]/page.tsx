@@ -133,7 +133,7 @@ export default async function EditDrugPage({
         <div className="mt-6 flex items-center justify-end">
           <button
             type="submit"
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-(--brand) px-5 text-sm font-semibold text-white hover:bg-(--brand-hover)"
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             حفظ
           </button>

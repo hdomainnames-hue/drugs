@@ -19,7 +19,7 @@ export default async function AdminArticlesPage() {
         </div>
         <Link
           href="/admin/articles/new"
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-(--brand) px-4 text-sm font-semibold text-white hover:bg-(--brand-hover)"
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           مقال جديد
         </Link>
@@ -47,7 +47,7 @@ export default async function AdminArticlesPage() {
                 <div className="col-span-3 text-xs text-zinc-600 dark:text-zinc-400">{a.slug}</div>
                 <div className="col-span-1 text-xs">
                   {a.publishedAt ? (
-                    <span className="rounded-lg bg-zinc-50 px-2 py-1 text-(--brand) dark:bg-zinc-950/30 dark:text-(--brand)">
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
                       منشور
                     </span>
                   ) : (
