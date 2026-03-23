@@ -1,34 +1,12 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const style: React.CSSProperties = await (async () => {
-    try {
-      const brandKeys = ["theme_brand", "theme_brand_hover", "theme_brand_dark", "theme_brand_dark_hover"];
-      const rows = await prisma.siteSetting.findMany({
-        where: { key: { in: brandKeys } },
-        select: { key: true, value: true },
-      });
-      const map = new Map(rows.map((r) => [r.key, r.value]));
-      return {
-        ...(map.get("theme_brand")?.trim() ? { ["--brand" as any]: map.get("theme_brand")!.trim() } : {}),
-        ...(map.get("theme_brand_hover")?.trim() ? { ["--brand-hover" as any]: map.get("theme_brand_hover")!.trim() } : {}),
-        ...(map.get("theme_brand_dark")?.trim() ? { ["--brand-dark" as any]: map.get("theme_brand_dark")!.trim() } : {}),
-        ...(map.get("theme_brand_dark_hover")?.trim()
-          ? { ["--brand-dark-hover" as any]: map.get("theme_brand_dark_hover")!.trim() }
-          : {}),
-      };
-    } catch {
-      return {};
-    }
-  })();
-
   return (
-    <div style={style} className="min-h-full bg-(--background) text-(--foreground)">
+    <div className="min-h-full bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50">
       <header className="sticky top-0 z-20 border-b border-zinc-200/60 bg-zinc-50/80 backdrop-blur dark:border-zinc-800/60 dark:bg-black/60">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
           <Link href="/admin" className="text-sm font-semibold tracking-tight">
