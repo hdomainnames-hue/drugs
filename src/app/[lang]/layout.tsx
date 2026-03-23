@@ -311,73 +311,92 @@ export default async function LangLayout({
         </div>
       </footer>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
-        <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
-          <div className="pointer-events-none absolute left-1/2 -top-4 h-7 w-14 -translate-x-1/2 rounded-t-[999px] bg-zinc-50/95 backdrop-blur dark:bg-black/85" />
-          <NavLink
-            href={`/${lang}/drugs`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
+      <nav className="fixed bottom-0 left-0 right-0 z-30 sm:hidden">
+        <div className="relative h-20 w-full overflow-visible">
+          <div className="absolute inset-x-0 bottom-0 h-16 border-t border-zinc-200 bg-zinc-50/95 backdrop-blur dark:border-zinc-800 dark:bg-black/95" />
+          <div className="absolute left-1/2 top-0 h-12 w-20 -translate-x-1/2 overflow-visible">
+            <svg viewBox="0 0 80 48" className="h-full w-full">
+              <path
+                d="M0 48h80V0c-4 0-8 2-12 8-6 10-14 16-28 16S18 18 12 8C8 2 4 0 0 0v48z"
+                className="fill-zinc-50 dark:fill-black"
+              />
+              <path
+                d="M0 0.5c4 0 8 2 12 8 6 10 14 16 28 16s22-6 28-16c4-6 8-8 12-8"
+                className="fill-none stroke-zinc-200 dark:stroke-zinc-800"
+                strokeWidth="1"
+              />
             </svg>
-            {t(lang, "drugsNav")}
-          </NavLink>
+          </div>
+          <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
+            <NavLink
+              href={`/${lang}/drugs`}
+              className="flex h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+              activeClassName="text-zinc-950 dark:text-zinc-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {t(lang, "drugsNav")}
+            </NavLink>
 
-          <NavLink
-            href={`/${lang}/companies`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M6 21V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "companiesTitle")}
-          </NavLink>
+            <NavLink
+              href={`/${lang}/companies`}
+              className="flex h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+              activeClassName="text-zinc-950 dark:text-zinc-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6 21V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {t(lang, "companiesTitle")}
+            </NavLink>
 
-          <NavLink
-            href={`/${lang}`}
-            exact
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "homeNav")}
-          </NavLink>
+            <div className="relative flex h-16 items-center justify-center">
+              <NavLink
+                href={`/${lang}`}
+                exact
+                className="absolute -top-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-transform active:scale-95 dark:bg-emerald-500"
+                activeClassName="ring-4 ring-white dark:ring-zinc-900"
+              >
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </NavLink>
+              <span className="mt-8 text-[10px] font-medium text-zinc-700 dark:text-zinc-300">
+                {t(lang, "homeNav")}
+              </span>
+            </div>
 
-          <NavLink
-            href={`/${lang}/active-ingredients`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M8 8h8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "activeIngredientsTitle")}
-          </NavLink>
+            <NavLink
+              href={`/${lang}/active-ingredients`}
+              className="flex h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+              activeClassName="text-zinc-950 dark:text-zinc-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8 8h8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {t(lang, "activeIngredientsTitle")}
+            </NavLink>
 
-          <NavLink
-            href={`/${lang}/articles`}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
-            activeClassName="text-zinc-950 dark:text-zinc-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M8 6h13" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M8 12h13" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M8 18h13" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M3 6h.01" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M3 12h.01" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M3 18h.01" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t(lang, "articlesNav")}
-          </NavLink>
+            <NavLink
+              href={`/${lang}/articles`}
+              className="flex h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
+              activeClassName="text-zinc-950 dark:text-zinc-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 6h13" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8 12h13" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8 18h13" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3 6h.01" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3 12h.01" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3 18h.01" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {t(lang, "articlesNav")}
+            </NavLink>
+          </div>
         </div>
       </nav>
 
