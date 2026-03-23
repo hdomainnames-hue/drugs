@@ -18,7 +18,7 @@ export default async function AdminMessageDetailPage({
     return (
       <div className="space-y-4">
         <div className="text-sm text-zinc-600 dark:text-zinc-400">معرّف غير صالح.</div>
-        <Link href="/admin/messages" className="text-sm font-semibold text-emerald-700 hover:text-emerald-900">
+        <Link href="/admin/messages" className="text-sm font-semibold text-(--brand) hover:text-(--brand-hover)">
           العودة
         </Link>
       </div>
@@ -33,7 +33,7 @@ export default async function AdminMessageDetailPage({
     return (
       <div className="space-y-4">
         <div className="text-sm text-zinc-600 dark:text-zinc-400">الرسالة غير موجودة.</div>
-        <Link href="/admin/messages" className="text-sm font-semibold text-emerald-700 hover:text-emerald-900">
+        <Link href="/admin/messages" className="text-sm font-semibold text-(--brand) hover:text-(--brand-hover)">
           العودة
         </Link>
       </div>
@@ -86,7 +86,7 @@ export default async function AdminMessageDetailPage({
             <form action={async () => markMessageDone(id)}>
               <button
                 type="submit"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-(--brand) px-3 text-xs font-semibold text-white hover:bg-(--brand-hover)"
               >
                 تم التعامل
               </button>
@@ -99,7 +99,7 @@ export default async function AdminMessageDetailPage({
         <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">الرد</div>
 
         {message.reply ? (
-          <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+          <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-(--brand) dark:border-zinc-800 dark:bg-zinc-950 dark:text-(--brand)">
             <div className="text-xs font-medium">تم الرد في: {message.repliedAt ? message.repliedAt.toISOString() : "-"}</div>
             <div className="mt-2 whitespace-pre-wrap leading-7">{message.reply}</div>
           </div>

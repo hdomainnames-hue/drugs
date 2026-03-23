@@ -19,7 +19,7 @@ export default async function AdminFaqPage() {
         </div>
         <Link
           href="/admin/faq/new"
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-(--brand) px-4 text-sm font-semibold text-white hover:bg-(--brand-hover)"
         >
           سؤال جديد
         </Link>

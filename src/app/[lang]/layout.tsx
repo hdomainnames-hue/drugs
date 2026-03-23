@@ -66,12 +66,12 @@ export default async function LangLayout({
       lang={lang}
       className="min-h-full flex flex-col bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50"
     >
-      <header className="sticky top-0 z-20 border-b border-zinc-200/60 bg-zinc-100/80 backdrop-blur dark:border-zinc-800/60 dark:bg-black/70">
+      <header className="sticky top-0 z-20 border-b border-zinc-200/70 bg-zinc-100/90 backdrop-blur dark:border-zinc-800/60 dark:bg-black/75">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
           <Link href={`/${lang}`} className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight">
             <svg
               viewBox="0 0 24 24"
-              className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+              className="h-5 w-5 text-[var(--brand)]"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -223,14 +223,14 @@ export default async function LangLayout({
 
       <main className="flex flex-1 flex-col">{children}</main>
 
-      <footer className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
+      <footer className="border-t border-zinc-200 bg-zinc-100/70 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto w-full max-w-5xl px-4 py-10">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                 <svg
                   viewBox="0 0 24 24"
-                  className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                  className="h-5 w-5 text-[var(--brand)]"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -311,9 +311,9 @@ export default async function LangLayout({
         </div>
       </footer>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/95 backdrop-blur dark:border-zinc-800 dark:bg-black/85 sm:hidden">
         <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
-          <div className="pointer-events-none absolute left-1/2 -top-4 h-7 w-14 -translate-x-1/2 rounded-t-[999px] bg-zinc-50/95 backdrop-blur dark:bg-black/85" />
+          <div className="pointer-events-none absolute left-1/2 -top-5 h-9 w-16 -translate-x-1/2 rounded-t-[999px] bg-zinc-50/95 ring-1 ring-zinc-200/80 backdrop-blur dark:bg-black/85 dark:ring-zinc-800/80" />
           <NavLink
             href={`/${lang}/drugs`}
             className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"

@@ -15,9 +15,16 @@ const keys = [
   "translate_groq_api_keys",
 ];
 
+const themeKeys = [
+  "theme_brand",
+  "theme_brand_hover",
+  "theme_brand_dark",
+  "theme_brand_dark_hover",
+];
+
 export default async function AdminSettingsPage() {
   const settings = await prisma.siteSetting.findMany({
-    where: { key: { in: keys } },
+    where: { key: { in: [...keys, ...themeKeys] } },
     select: { key: true, value: true },
   });
 
@@ -37,6 +44,10 @@ export default async function AdminSettingsPage() {
         action={async (formData) => {
           "use server";
           for (const k of keys) {
+            await setSetting(k, String(formData.get(k) || ""));
+          }
+
+          for (const k of themeKeys) {
             await setSetting(k, String(formData.get(k) || ""));
           }
         }}
@@ -66,6 +77,38 @@ export default async function AdminSettingsPage() {
               </label>
             );
           })}
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="text-sm font-semibold">ألوان الثيم</div>
+          <div className="mt-1 text-xs leading-6 text-zinc-600 dark:text-zinc-400">
+            اترك الحقل فارغًا ثم احفظ لإرجاع اللون للوضع الافتراضي.
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {themeKeys.map((k) => (
+              <label key={k} className="space-y-2">
+                <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">{k}</div>
+                <div className="flex items-center gap-3">
+                  <input
+                    name={k}
+                    defaultValue={map.get(k) ?? ""}
+                    placeholder="#16a34a"
+                    className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-3 text-sm dark:border-zinc-800 dark:bg-black"
+                  />
+                  <input
+                    type="color"
+                    defaultValue={(map.get(k) ?? "").trim() || "#16a34a"}
+                    onChange={(e) => {
+                      const form = (e.currentTarget as HTMLInputElement).form;
+                      const target = form?.elements.namedItem(k);
+                      if (target && target instanceof HTMLInputElement) target.value = e.currentTarget.value;
+                    }}
+                    className="h-11 w-14 rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-black"
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -104,7 +147,7 @@ export default async function AdminSettingsPage() {
         <div className="mt-6 flex items-center justify-end">
           <button
             type="submit"
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-(--brand) px-5 text-sm font-semibold text-white hover:bg-(--brand-hover)"
           >
             حفظ الإعدادات
           </button>
