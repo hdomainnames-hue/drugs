@@ -83,8 +83,8 @@ export default async function ActiveIngredientDetailPage({
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{ingredientTitle}</h1>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">{ingredientTitle}</h1>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                 {t(lang, "totalResults")}: {total.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
               </p>

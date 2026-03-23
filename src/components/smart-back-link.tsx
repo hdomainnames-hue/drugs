@@ -34,6 +34,8 @@ export default async function SmartBackLink({ lang }: { lang: Lang }) {
   if (pathname.startsWith(`/${lang}/drugs`)) {
     const q = String(url.searchParams.get("q") || "").trim();
     label = q ? t(lang, "backToSearch") : t(lang, "backToDrugs");
+  } else if (pathname.startsWith(`/${lang}/drug/`)) {
+    label = t(lang, "backToDrug");
   } else if (pathname.startsWith(`/${lang}/companies`)) {
     label = t(lang, "backToCompanies");
   } else if (pathname.startsWith(`/${lang}/active-ingredients`)) {

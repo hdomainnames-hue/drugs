@@ -12,6 +12,7 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
   const [q, setQ] = useState("");
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const panelId = useId();
 
   useEffect(() => {
@@ -23,6 +24,21 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const root = rootRef.current;
+      if (!root) return;
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (!root.contains(target)) setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
   const submit = () => {
@@ -37,7 +53,7 @@ export default function NavbarSearch({ lang }: { lang: Lang }) {
   };
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
