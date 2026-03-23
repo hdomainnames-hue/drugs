@@ -71,6 +71,7 @@ const dict = {
     footerTerms: "الشروط والأحكام",
     footerMedical: "إخلاء مسؤولية طبي",
     footerRights: "جميع الحقوق محفوظة",
+    footerDisclaimerShort: "المحتوى للتثقيف العام ولا يغني عن استشارة الطبيب أو الصيدلي.",
 
     aboutTitle: "من نحن",
     aboutBody:
@@ -172,6 +173,7 @@ const dict = {
     footerTerms: "Terms",
     footerMedical: "Medical disclaimer",
     footerRights: "All rights reserved",
+    footerDisclaimerShort: "Content is for general education and does not replace a doctor or pharmacist consultation.",
 
     aboutTitle: "About",
     aboutBody:

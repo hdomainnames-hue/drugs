@@ -26,13 +26,58 @@ export async function getOrTranslateFields(
   const out: Record<string, string> = {};
   const byKey = (r: TranslateFieldRequest) => `${r.entityType}:${r.entityId}:${r.field}`;
 
+  const normalizeSource = (s: string) => s.normalize("NFKC").trim();
+  const hardcodedOverrides = new Map<string, string>([
+    [normalizeSource("ABEVAC 1MG/ML VIAL"), "أبيفاك ١ مج/مل أمبول"],
+    [normalizeSource("5FU 250MG/5ML VIAL(N/A)"), "5FU ٢٥٠ مج/٥ مل أمبول"],
+    [normalizeSource("RISEFUTAL 5MG 7 F.C.TAB"), "رايزفوتال ٥ مج ٧ أقراص مغلفة"],
+  ]);
+
   const uniqueReqs = reqs.filter((r) => r.sourceText && r.sourceText.trim());
   if (!uniqueReqs.length) return out;
+
+  const overrideReqs: TranslateFieldRequest[] = [];
+  const nonOverrideReqs: TranslateFieldRequest[] = [];
+  for (const r of uniqueReqs) {
+    const override = hardcodedOverrides.get(normalizeSource(r.sourceText));
+    if (override) {
+      out[byKey(r)] = override;
+      overrideReqs.push(r);
+    } else {
+      nonOverrideReqs.push(r);
+    }
+  }
+
+  if (overrideReqs.length) {
+    await Promise.all(
+      overrideReqs.map(async (r) => {
+        const translatedText = hardcodedOverrides.get(normalizeSource(r.sourceText))!;
+        const h = sha256(r.sourceText);
+        await prisma.translation.upsert({
+          where: { entityType_entityId_field_lang: { entityType: r.entityType, entityId: r.entityId, field: r.field, lang } },
+          create: {
+            entityType: r.entityType,
+            entityId: r.entityId,
+            field: r.field,
+            lang,
+            sourceText: r.sourceText,
+            sourceHash: h,
+            translatedText,
+          },
+          update: {
+            sourceText: r.sourceText,
+            sourceHash: h,
+            translatedText,
+          },
+        });
+      }),
+    );
+  }
 
   const existing = await prisma.translation.findMany({
     where: {
       lang,
-      OR: uniqueReqs.map((r) => ({
+      OR: nonOverrideReqs.map((r) => ({
         entityType: r.entityType,
         entityId: r.entityId,
         field: r.field,
@@ -45,7 +90,7 @@ export async function getOrTranslateFields(
   for (const e of existing) existingMap.set(`${e.entityType}:${e.entityId}:${e.field}`, { sourceHash: e.sourceHash, translatedText: e.translatedText });
 
   const missing: TranslateFieldRequest[] = [];
-  for (const r of uniqueReqs) {
+  for (const r of nonOverrideReqs) {
     const k = byKey(r);
     const h = sha256(r.sourceText);
     const found = existingMap.get(k);
