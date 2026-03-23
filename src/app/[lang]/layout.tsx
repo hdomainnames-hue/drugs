@@ -332,30 +332,34 @@ export default async function LangLayout({
           </div>
 
           {/* Navigation Items */}
-          <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2 mt-4">
+          <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
             <NavLink
               href={`/${lang}/drugs`}
-              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center pt-2 gap-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {t(lang, "drugsNav")}
+              <div className="flex items-center justify-center h-7">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <span>{t(lang, "drugsNav")}</span>
             </NavLink>
 
             <NavLink
               href={`/${lang}/companies`}
-              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center pt-2 gap-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M6 21V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {t(lang, "companiesTitle")}
+              <div className="flex items-center justify-center h-7">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 21V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 9h.01M12 9h.01M15 9h.01M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <span>{t(lang, "companiesTitle")}</span>
             </NavLink>
 
             <div className="relative flex items-center justify-center">
@@ -376,30 +380,34 @@ export default async function LangLayout({
 
             <NavLink
               href={`/${lang}/active-ingredients`}
-              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center pt-2 gap-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8 8h8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {t(lang, "activeIngredientsTitle")}
+              <div className="flex items-center justify-center h-7">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8 8h8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <span>{t(lang, "activeIngredientsTitle")}</span>
             </NavLink>
 
             <NavLink
               href={`/${lang}/articles`}
-              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center pt-2 gap-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M8 6h13" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8 12h13" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8 18h13" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M3 6h.01" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M3 12h.01" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M3 18h.01" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {t(lang, "articlesNav")}
+              <div className="flex items-center justify-center h-7">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 6h13" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8 12h13" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8 18h13" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 6h.01" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 12h.01" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 18h.01" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <span>{t(lang, "articlesNav")}</span>
             </NavLink>
           </div>
         </div>
