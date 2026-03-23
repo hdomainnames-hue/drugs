@@ -1,13 +1,13 @@
 import { headers } from "next/headers";
-import { Geist_Mono, Inter, Noto_Sans_Arabic } from "next/font/google";
+import { Cairo, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans-latin",
   subsets: ["latin"],
 });
 
-const notoSansArabic = Noto_Sans_Arabic({
+const cairo = Cairo({
   variable: "--font-sans-arabic",
   subsets: ["arabic"],
 });
@@ -25,7 +25,7 @@ export default async function RootLayout({
   const h = await headers();
   const lang = h.get("x-lang") === "en" ? "en" : "ar";
   const dir = lang === "ar" ? "rtl" : "ltr";
-  const fontSansVar = lang === "ar" ? notoSansArabic.variable : inter.variable;
+  const fontSansVar = lang === "ar" ? cairo.variable : plusJakartaSans.variable;
 
   return (
     <html

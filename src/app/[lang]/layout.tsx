@@ -311,7 +311,7 @@ export default async function LangLayout({
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sm:hidden">
         <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
-          <div className="pointer-events-none absolute left-1/2 top-0 h-10 w-20 -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] border border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80" />
+          <div className="pointer-events-none absolute left-1/2 -top-6 h-10 w-20 -translate-x-1/2 rounded-t-[999px] border border-b-0 border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80" />
           <NavLink
             href={`/${lang}/drugs`}
             className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-medium text-zinc-700 dark:text-zinc-300"
