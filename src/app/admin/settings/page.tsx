@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { setSetting } from "./actions";
 
+export const runtime = "nodejs";
+
 const keys = [
   "site_email",
   "site_name_ar",
@@ -16,10 +18,19 @@ const keys = [
 ];
 
 export default async function AdminSettingsPage() {
-  const settings = await prisma.siteSetting.findMany({
-    where: { key: { in: keys } },
-    select: { key: true, value: true },
-  });
+  let settings: { key: string; value: string }[] = [];
+  let loadError = "";
+
+  try {
+    settings = await prisma.siteSetting.findMany({
+      where: { key: { in: keys } },
+      select: { key: true, value: true },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    loadError = msg;
+    console.error("Failed to load admin settings", { error: msg });
+  }
 
   const map = new Map(settings.map((s) => [s.key, s.value]));
   const emergencySecret = process.env.ADMIN_PASS?.trim() || "";
@@ -32,6 +43,12 @@ export default async function AdminSettingsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">الإعدادات</h1>
         <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">إعدادات الموقع ومفاتيح الترجمة (محفوظة في قاعدة البيانات).</p>
       </div>
+
+      {loadError ? (
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          تعذّر تحميل الإعدادات من قاعدة البيانات. ما زالت الصفحة تعمل لتجنب الخطأ العام، لكن القيم المعروضة قد تكون فارغة.
+        </div>
+      ) : null}
 
       <form
         action={async (formData) => {

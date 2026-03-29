@@ -48,3 +48,6 @@ next-env.d.ts
 
 # local notes
 رابط مسح كاش الترجمة.txt
+
+.vercel
+.env*.local

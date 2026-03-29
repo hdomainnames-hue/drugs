@@ -19,6 +19,8 @@ type DrugListItem = Prisma.DrugGetPayload<{
     company: true;
     activeIngredient: true;
     price: true;
+    imageSourceUrl: true;
+    imageLocalPath: true;
   };
 }>;
 
@@ -98,6 +100,8 @@ export default async function DrugsPage({
         company: true,
         activeIngredient: true,
         price: true,
+        imageSourceUrl: true,
+        imageLocalPath: true,
       },
     }),
     prisma.drug.count({ where }),
@@ -174,19 +178,43 @@ export default async function DrugsPage({
                 href={`/${lang}/drug/${d.remoteId}`}
                 className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
               >
-                <div className="flex flex-col gap-2">
-                  <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{name}</div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                    <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
-                      {t(lang, "company")}: {company || "-"}
-                    </div>
-                    <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
-                      {t(lang, "activeIngredient")}: {activeIngredient || "-"}
-                    </div>
-                    <div>
-                      {t(lang, "price")}: {d.price || "-"}
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{name}</div>
+                    <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                      <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
+                        {t(lang, "company")}: {company || "-"}
+                      </div>
+                      <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
+                        {t(lang, "activeIngredient")}: {activeIngredient || "-"}
+                      </div>
+                      <div>
+                        {t(lang, "price")}: {d.price || "-"}
+                      </div>
                     </div>
                   </div>
+
+                  {(() => {
+                    const src = d.imageSourceUrl || d.imageLocalPath;
+                    const thumb = !src
+                      ? null
+                      : src.startsWith("http://") || src.startsWith("https://")
+                        ? src
+                        : src.startsWith("/")
+                          ? src
+                          : null;
+
+                    return thumb ? (
+                      <img
+                        src={thumb}
+                        alt={name}
+                        loading="lazy"
+                        className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                    );
+                  })()}
                 </div>
               </Link>
                 );
