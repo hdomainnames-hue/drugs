@@ -10,20 +10,26 @@ import { ImageLightbox } from "@/components/image-lightbox";
 import SmartBackLink from "@/components/smart-back-link";
 import { getOrTranslateFields } from "@/lib/translate/translations";
 
-type SimilarEdge = Prisma.DrugSimilarGetPayload<{
+type AlternativeDrug = Prisma.DrugGetPayload<{
   select: {
-    toDrug: {
-      select: {
-        remoteId: true;
-        name: true;
-        company: true;
-        activeIngredient: true;
-        imageSourceUrl: true;
-        imageLocalPath: true;
-      };
-    };
+    remoteId: true;
+    name: true;
+    company: true;
+    activeIngredient: true;
+    price: true;
+    imageSourceUrl: true;
+    imageLocalPath: true;
   };
 }>;
+
+function parsePrice(raw: string | null | undefined): number {
+  if (!raw) return Number.POSITIVE_INFINITY;
+  const s = String(raw);
+  const m = s.match(/\d+(?:[\.,]\d+)?/g);
+  if (!m || !m.length) return Number.POSITIVE_INFINITY;
+  const n = Number.parseFloat(m.join(" ").split(" ")[0].replace(",", "."));
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
 
 function toInt(v: string) {
   const n = Number.parseInt(v, 10);
@@ -111,23 +117,52 @@ export default async function DrugDetailPage({
 
   if (!drug) notFound();
 
-  const similar = await prisma.drugSimilar.findMany({
-    where: { fromDrugId: drug.id },
-    take: 24,
-    orderBy: { id: "asc" },
-    select: {
-      toDrug: {
+  const rawCompany = drug.company || "";
+  const rawActiveIngredient = drug.activeIngredient || "";
+  const currentPrice = parsePrice(drug.price);
+
+  const alternativesRaw: AlternativeDrug[] = rawActiveIngredient
+    ? ((await prisma.drug.findMany({
+        where: {
+          remoteId: { not: drug.remoteId },
+          activeIngredient: {
+            equals: rawActiveIngredient,
+            mode: "insensitive",
+          },
+        },
+        take: 80,
         select: {
           remoteId: true,
           name: true,
           company: true,
           activeIngredient: true,
+          price: true,
           imageSourceUrl: true,
           imageLocalPath: true,
         },
-      },
-    },
+      })) as AlternativeDrug[])
+    : [];
+
+  const alternativesSorted = [...alternativesRaw].sort((a, b) => {
+    const pa = parsePrice(a.price);
+    const pb = parsePrice(b.price);
+    if (pa !== pb) return pa - pb;
+    return a.remoteId - b.remoteId;
   });
+
+  const cheaperAlternatives = Number.isFinite(currentPrice)
+    ? alternativesSorted.filter((d) => {
+        const p = parsePrice(d.price);
+        return Number.isFinite(p) && p < currentPrice;
+      })
+    : [];
+
+  const otherAlternatives = Number.isFinite(currentPrice)
+    ? alternativesSorted.filter((d) => {
+        const p = parsePrice(d.price);
+        return !(Number.isFinite(p) && p < currentPrice);
+      })
+    : alternativesSorted;
 
   const translations = await getOrTranslateFields(
     lang,
@@ -136,18 +171,16 @@ export default async function DrugDetailPage({
       { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "company", sourceText: drug.company || "" },
       { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "activeIngredient", sourceText: drug.activeIngredient || "" },
       { entityType: "Drug" as const, entityId: String(drug.remoteId), field: "description", sourceText: drug.description || "" },
-      ...similar.flatMap((e) => [
-        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "name", sourceText: e.toDrug.name },
-        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "company", sourceText: e.toDrug.company || "" },
-        { entityType: "Drug" as const, entityId: String(e.toDrug.remoteId), field: "activeIngredient", sourceText: e.toDrug.activeIngredient || "" },
+      ...alternativesSorted.flatMap((d) => [
+        { entityType: "Drug" as const, entityId: String(d.remoteId), field: "name", sourceText: d.name },
+        { entityType: "Drug" as const, entityId: String(d.remoteId), field: "company", sourceText: d.company || "" },
+        { entityType: "Drug" as const, entityId: String(d.remoteId), field: "activeIngredient", sourceText: d.activeIngredient || "" },
       ]),
     ],
   );
 
   const drugName =
     lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:name`] ?? t(lang, "translationPending") : drug.name;
-  const rawCompany = drug.company || "";
-  const rawActiveIngredient = drug.activeIngredient || "";
 
   const company = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:company`] ?? "" : rawCompany;
   const activeIngredient = lang === "ar" ? translations[`Drug:${String(drug.remoteId)}:activeIngredient`] ?? "" : rawActiveIngredient;
@@ -440,52 +473,117 @@ export default async function DrugDetailPage({
           <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "similarDrugs")}</h2>
 
-            {similar.length ? (
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {(similar as SimilarEdge[]).map((s) => (
-                  <Link
-                    key={s.toDrug.remoteId}
-                    href={`/${lang}/drug/${s.toDrug.remoteId}`}
-                    className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                  >
-                    <div className="flex flex-row-reverse items-start gap-3">
-                      {(() => {
-                        const src = s.toDrug.imageSourceUrl || s.toDrug.imageLocalPath;
-                        const thumb = !src
-                          ? null
-                          : src.startsWith("http://") || src.startsWith("https://")
-                            ? src
-                            : src.startsWith("/")
-                              ? src
-                              : null;
-                        return thumb ? (
-                          <img
-                            src={thumb}
-                            alt={trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
-                            loading="lazy"
-                            className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
-                        );
-                      })()}
+            {alternativesSorted.length ? (
+              <div className="mt-4 space-y-6">
+                {cheaperAlternatives.length ? (
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "cheaperAlternatives")}</div>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {cheaperAlternatives.slice(0, 24).map((d) => (
+                        <Link
+                          key={d.remoteId}
+                          href={`/${lang}/drug/${d.remoteId}`}
+                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                        >
+                          <div className="flex flex-row-reverse items-start gap-3">
+                            {(() => {
+                              const src = d.imageSourceUrl || d.imageLocalPath;
+                              const thumb = !src
+                                ? null
+                                : src.startsWith("http://") || src.startsWith("https://")
+                                  ? src
+                                  : src.startsWith("/")
+                                    ? src
+                                    : null;
+                              return thumb ? (
+                                <img
+                                  src={thumb}
+                                  alt={trSimilar(d.remoteId, "name", d.name)}
+                                  loading="lazy"
+                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                              );
+                            })()}
 
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                          {trSimilar(s.toDrug.remoteId, "name", s.toDrug.name)}
-                        </div>
-                        <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                          <div>
-                            {t(lang, "company")}: {trSimilar(s.toDrug.remoteId, "company", s.toDrug.company || "-")}
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                                {trSimilar(d.remoteId, "name", d.name)}
+                              </div>
+                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div>
+                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "price")}: {d.price || "-"}
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            {t(lang, "activeIngredient")}: {trSimilar(s.toDrug.remoteId, "activeIngredient", s.toDrug.activeIngredient || "-")}
-                          </div>
-                        </div>
-                      </div>
+                        </Link>
+                      ))}
                     </div>
-                  </Link>
-                ))}
+                  </div>
+                ) : null}
+
+                {otherAlternatives.length ? (
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {otherAlternatives.slice(0, 24).map((d) => (
+                        <Link
+                          key={d.remoteId}
+                          href={`/${lang}/drug/${d.remoteId}`}
+                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                        >
+                          <div className="flex flex-row-reverse items-start gap-3">
+                            {(() => {
+                              const src = d.imageSourceUrl || d.imageLocalPath;
+                              const thumb = !src
+                                ? null
+                                : src.startsWith("http://") || src.startsWith("https://")
+                                  ? src
+                                  : src.startsWith("/")
+                                    ? src
+                                    : null;
+                              return thumb ? (
+                                <img
+                                  src={thumb}
+                                  alt={trSimilar(d.remoteId, "name", d.name)}
+                                  loading="lazy"
+                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                              );
+                            })()}
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                                {trSimilar(d.remoteId, "name", d.name)}
+                              </div>
+                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div>
+                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "price")}: {d.price || "-"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{t(lang, "noSimilar")}</div>
