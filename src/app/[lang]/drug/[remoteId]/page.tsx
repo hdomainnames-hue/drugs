@@ -22,6 +22,25 @@ type AlternativeDrug = Prisma.DrugGetPayload<{
   };
 }>;
 
+type AgeGroup = "kids" | "adults" | "unknown";
+
+type DosageForm =
+  | "tablet"
+  | "capsule"
+  | "syrup"
+  | "suspension"
+  | "drops"
+  | "injection"
+  | "cream"
+  | "ointment"
+  | "gel"
+  | "spray"
+  | "inhaler"
+  | "solution"
+  | "powder"
+  | "other"
+  | "unknown";
+
 function parsePrice(raw: string | null | undefined): number {
   if (!raw) return Number.POSITIVE_INFINITY;
   const s = String(raw);
@@ -29,6 +48,89 @@ function parsePrice(raw: string | null | undefined): number {
   if (!m || !m.length) return Number.POSITIVE_INFINITY;
   const n = Number.parseFloat(m.join(" ").split(" ")[0].replace(",", "."));
   return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
+
+function normalizeText(s: string | null | undefined) {
+  return String(s ?? "")
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function detectAgeGroup(name: string, activeIngredient: string) {
+  const s = `${normalizeText(name)} ${normalizeText(activeIngredient)}`;
+  const kidsHints = [
+    "pediatric",
+    "paediatric",
+    "child",
+    "children",
+    "kid",
+    "kids",
+    "infant",
+    "baby",
+    "junior",
+    "jr",
+    "susp",
+    "suspension",
+    "drops",
+    "drp",
+    "اطفال",
+    "للأطفال",
+    "للاطفال",
+    "رضع",
+    "شراب",
+    "معلق",
+  ];
+  const adultHints = ["adult", "adults", "لل成人", "للكبار", "للبالغين", "بالغين"]; 
+
+  if (kidsHints.some((k) => s.includes(k))) return "kids" as const;
+  if (adultHints.some((k) => s.includes(k))) return "adults" as const;
+  return "unknown" as const;
+}
+
+function detectDosageForm(name: string) {
+  const s = normalizeText(name);
+  const has = (arr: string[]) => arr.some((k) => s.includes(k));
+  if (has(["tablet", "tab", "tbl", "قرص", "اقراص", "أقراص"])) return "tablet";
+  if (has(["capsule", "cap", "كبسول", "كبسولة", "كبسولات"])) return "capsule";
+  if (has(["syrup", "syp", "شراب"])) return "syrup";
+  if (has(["suspension", "susp", "معلق"])) return "suspension";
+  if (has(["drop", "drops", "drp", "نقط", "قطرة", "قطرات"])) return "drops";
+  if (has(["inj", "injection", "amp", "ampoule", "حقن", "امبول", "أمبول"])) return "injection";
+  if (has(["cream", "كريم"])) return "cream";
+  if (has(["ointment", "مرهم"])) return "ointment";
+  if (has(["gel", "جل"])) return "gel";
+  if (has(["spray", "بخاخ"])) return "spray";
+  if (has(["inhaler", "استنشاق", "بخاخ استنشاق"])) return "inhaler";
+  if (has(["solution", "sol", "محلول"])) return "solution";
+  if (has(["powder", "pwd", "بودرة", "مسحوق"])) return "powder";
+  return "unknown";
+}
+
+function extractStrengthKey(name: string, activeIngredient: string) {
+  const s = `${normalizeText(name)} ${normalizeText(activeIngredient)}`;
+  const m = s.match(/(\d+(?:[\.,]\d+)?)\s*(mcg|ug|mg|g|iu|%)\b(?:\s*\/\s*(\d+(?:[\.,]\d+)?)\s*(ml|l)\b)?/i);
+  if (!m) return "";
+  const n1 = String(m[1] ?? "").replace(",", ".");
+  const u1 = String(m[2] ?? "").toLowerCase();
+  const n2 = m[3] ? String(m[3]).replace(",", ".") : "";
+  const u2 = m[4] ? String(m[4]).toLowerCase() : "";
+  return `${n1}${u1}${n2 ? `/${n2}${u2}` : ""}`;
+}
+
+function splitActiveTokens(activeIngredient: string) {
+  const s = normalizeText(activeIngredient);
+  return s
+    .split(/[\+\/,&؛،]/g)
+    .map((x) => x.trim())
+    .filter((x) => x.length >= 3)
+    .slice(0, 4);
+}
+
+function includesAllTokens(hay: string, tokens: string[]) {
+  const h = normalizeText(hay);
+  return tokens.every((t) => h.includes(normalizeText(t)));
 }
 
 function toInt(v: string) {
@@ -121,16 +223,24 @@ export default async function DrugDetailPage({
   const rawActiveIngredient = drug.activeIngredient || "";
   const currentPrice = parsePrice(drug.price);
 
-  const alternativesRaw: AlternativeDrug[] = rawActiveIngredient
+  const currentAgeGroup = detectAgeGroup(drug.name, rawActiveIngredient);
+  const currentDosageForm = detectDosageForm(drug.name);
+  const currentStrengthKey = extractStrengthKey(drug.name, rawActiveIngredient);
+
+  const activeTokens = splitActiveTokens(rawActiveIngredient);
+
+  const alternativesCandidates: AlternativeDrug[] = activeTokens.length
     ? ((await prisma.drug.findMany({
         where: {
           remoteId: { not: drug.remoteId },
-          activeIngredient: {
-            equals: rawActiveIngredient,
-            mode: "insensitive",
-          },
+          AND: activeTokens.map((tok) => ({
+            activeIngredient: {
+              contains: tok,
+              mode: "insensitive",
+            },
+          })),
         },
-        take: 80,
+        take: 250,
         select: {
           remoteId: true,
           name: true,
@@ -143,26 +253,58 @@ export default async function DrugDetailPage({
       })) as AlternativeDrug[])
     : [];
 
-  const alternativesSorted = [...alternativesRaw].sort((a, b) => {
-    const pa = parsePrice(a.price);
-    const pb = parsePrice(b.price);
-    if (pa !== pb) return pa - pb;
-    return a.remoteId - b.remoteId;
-  });
+  const alternativesFiltered = alternativesCandidates
+    .filter((d) => includesAllTokens(d.activeIngredient || "", activeTokens))
+    .filter((d) => {
+      const ag = detectAgeGroup(d.name, d.activeIngredient || "");
+      if (currentAgeGroup === "unknown" || ag === "unknown") return true;
+      return ag === currentAgeGroup;
+    });
+
+  const scored = alternativesFiltered
+    .map((d) => {
+      const form = detectDosageForm(d.name);
+      const strength = extractStrengthKey(d.name, d.activeIngredient || "");
+      const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
+      const sameForm = currentDosageForm !== "unknown" && form !== "unknown" ? form === currentDosageForm : true;
+      const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
+      const score = (exactActive ? 100 : 0) + (sameForm ? 40 : 0) + (exactStrength ? 60 : 0);
+      return {
+        drug: d,
+        score,
+        exactStrength,
+        sameForm,
+        priceNum: parsePrice(d.price),
+      };
+    })
+    .sort((a, b) => {
+      if (a.sameForm !== b.sameForm) return a.sameForm ? -1 : 1;
+      if (a.exactStrength !== b.exactStrength) return a.exactStrength ? -1 : 1;
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.priceNum !== b.priceNum) return a.priceNum - b.priceNum;
+      return a.drug.remoteId - b.drug.remoteId;
+    });
+
+  const sameFormSorted = scored.filter((x) => x.sameForm).map((x) => x.drug);
+  const otherFormsSorted = scored.filter((x) => !x.sameForm).map((x) => x.drug);
 
   const cheaperAlternatives = Number.isFinite(currentPrice)
-    ? alternativesSorted.filter((d) => {
+    ? sameFormSorted.filter((d) => {
         const p = parsePrice(d.price);
         return Number.isFinite(p) && p < currentPrice;
       })
     : [];
 
   const otherAlternatives = Number.isFinite(currentPrice)
-    ? alternativesSorted.filter((d) => {
+    ? sameFormSorted.filter((d) => {
         const p = parsePrice(d.price);
         return !(Number.isFinite(p) && p < currentPrice);
       })
-    : alternativesSorted;
+    : sameFormSorted;
+
+  const otherFormsAlternatives = otherFormsSorted;
+
+  const alternativesSorted = [...sameFormSorted, ...otherFormsSorted];
 
   const translations = await getOrTranslateFields(
     lang,
@@ -535,6 +677,61 @@ export default async function DrugDetailPage({
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {otherAlternatives.slice(0, 24).map((d) => (
+                        <Link
+                          key={d.remoteId}
+                          href={`/${lang}/drug/${d.remoteId}`}
+                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                        >
+                          <div className="flex flex-row-reverse items-start gap-3">
+                            {(() => {
+                              const src = d.imageSourceUrl || d.imageLocalPath;
+                              const thumb = !src
+                                ? null
+                                : src.startsWith("http://") || src.startsWith("https://")
+                                  ? src
+                                  : src.startsWith("/")
+                                    ? src
+                                    : null;
+                              return thumb ? (
+                                <img
+                                  src={thumb}
+                                  alt={trSimilar(d.remoteId, "name", d.name)}
+                                  loading="lazy"
+                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                              );
+                            })()}
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                                {trSimilar(d.remoteId, "name", d.name)}
+                              </div>
+                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div>
+                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "price")}: {d.price || "-"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {otherFormsAlternatives.length ? (
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherFormsAlternatives")}</div>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {otherFormsAlternatives.slice(0, 24).map((d) => (
                         <Link
                           key={d.remoteId}
                           href={`/${lang}/drug/${d.remoteId}`}
