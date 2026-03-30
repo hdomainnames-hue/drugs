@@ -42,6 +42,14 @@ type DosageForm =
   | "other"
   | "unknown";
 
+function areDosageFormsCompatible(a: DosageForm, b: DosageForm) {
+  if (a === "unknown" || a === "other" || b === "unknown" || b === "other") return true;
+  if (a === b) return true;
+  const oralLiquid = new Set<DosageForm>(["syrup", "suspension"]);
+  if (oralLiquid.has(a) && oralLiquid.has(b)) return true;
+  return false;
+}
+
 function parsePrice(raw: string | null | undefined): number {
   if (!raw) return Number.POSITIVE_INFINITY;
   const s = String(raw);
@@ -275,11 +283,9 @@ export default async function DrugDetailPage({
         currentDosageForm !== "other" &&
         form !== "unknown" &&
         form !== "other" &&
-        form === currentDosageForm;
+        areDosageFormsCompatible(form, currentDosageForm);
       const sameForm =
-        currentDosageForm === "unknown" || currentDosageForm === "other" || form === "unknown" || form === "other"
-          ? true
-          : form === currentDosageForm;
+        areDosageFormsCompatible(form, currentDosageForm);
       const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
       const score = (exactActive ? 100 : 0) + (sameForm ? 40 : 0) + (exactStrength ? 60 : 0);
       return {
@@ -330,7 +336,7 @@ export default async function DrugDetailPage({
       if (!hasAnyStrictSameForm) return false;
       if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
       if (x.form === "unknown" || x.form === "other") return false;
-      return x.form !== currentDosageForm;
+      return !areDosageFormsCompatible(x.form, currentDosageForm);
     })
     .map((x) => x.drug);
 
