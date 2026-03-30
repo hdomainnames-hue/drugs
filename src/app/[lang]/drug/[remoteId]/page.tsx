@@ -270,6 +270,12 @@ export default async function DrugDetailPage({
       const form = detectDosageForm(d.name);
       const strength = extractStrengthKey(d.name, d.activeIngredient || "");
       const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
+      const strictSameForm =
+        currentDosageForm !== "unknown" &&
+        currentDosageForm !== "other" &&
+        form !== "unknown" &&
+        form !== "other" &&
+        form === currentDosageForm;
       const sameForm =
         currentDosageForm === "unknown" || currentDosageForm === "other" || form === "unknown" || form === "other"
           ? true
@@ -281,6 +287,7 @@ export default async function DrugDetailPage({
         score,
         exactStrength,
         sameForm,
+        strictSameForm,
         form,
         strengthKey: strength,
         priceNum: parsePrice(d.price),
@@ -316,8 +323,11 @@ export default async function DrugDetailPage({
     })
     .map((x) => x.drug);
 
+  const hasAnyStrictSameForm = scored.some((x) => x.strictSameForm);
+
   const otherFormsAlternatives = scored
     .filter((x) => {
+      if (!hasAnyStrictSameForm) return false;
       if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
       if (x.form === "unknown" || x.form === "other") return false;
       return x.form !== currentDosageForm;
