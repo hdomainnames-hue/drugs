@@ -7,6 +7,8 @@ import type { Lang } from "@/lib/i18n";
 import { isLang, t } from "@/lib/i18n";
 import { getOrTranslateFields } from "@/lib/translate/translations";
 
+export const revalidate = 3600;
+
 function toInt(v: string | undefined, fallback: number) {
   const n = Number.parseInt(String(v ?? ""), 10);
   return Number.isFinite(n) && n > 0 ? n : fallback;

@@ -5,6 +5,8 @@ import { isLang, t } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
 import { getOrTranslateFields } from "@/lib/translate/translations";
 
+export const revalidate = 3600;
+
 export default async function Home({
   params,
 }: {
@@ -47,8 +49,8 @@ export default async function Home({
 
   return (
     <div className="flex flex-1">
-      <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-14">
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 sm:p-10">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-12">
+        <section className="rounded-3xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-6 shadow-sm dark:border-zinc-800 dark:from-zinc-950 dark:to-zinc-950 sm:p-10">
           <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -86,7 +88,7 @@ export default async function Home({
             </form>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                 <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "homeStatsTitle")}</div>
                 <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                   {t(lang, "homeTotalDrugs")}: {totalDrugs.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}
@@ -101,15 +103,36 @@ export default async function Home({
                 <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "homeBrowseAllDrugs")}</div>
               </Link>
 
-              <Link
-                href={`/${lang}/medical-disclaimer`}
-                className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 transition hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200"
-              >
+              <Link href={`/${lang}/medical-disclaimer`} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 transition hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
                 <div className="text-xs font-medium opacity-90">{t(lang, "medicalDisclaimerTitle")}</div>
                 <div className="mt-1 text-sm font-semibold">{t(lang, "footerMedical")}</div>
               </Link>
             </div>
           </div>
+        </section>
+
+        <section className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Link
+            href={`/${lang}/drugs`}
+            className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+          >
+            <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "drugsNav")}</div>
+            <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "homeBrowseAllDrugs")}</div>
+          </Link>
+          <Link
+            href={`/${lang}/companies`}
+            className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+          >
+            <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "companiesTitle")}</div>
+            <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "company")}</div>
+          </Link>
+          <Link
+            href={`/${lang}/active-ingredients`}
+            className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+          >
+            <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredientsTitle")}</div>
+            <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "activeIngredient")}</div>
+          </Link>
         </section>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
