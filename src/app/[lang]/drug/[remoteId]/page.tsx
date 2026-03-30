@@ -16,6 +16,7 @@ type AlternativeDrug = Prisma.DrugGetPayload<{
     name: true;
     company: true;
     activeIngredient: true;
+    description: true;
     price: true;
     imageSourceUrl: true;
     imageLocalPath: true;
@@ -47,6 +48,10 @@ function areDosageFormsCompatible(a: DosageForm, b: DosageForm) {
   if (a === b) return true;
   const oralLiquid = new Set<DosageForm>(["syrup", "suspension"]);
   if (oralLiquid.has(a) && oralLiquid.has(b)) return true;
+  const oralSolid = new Set<DosageForm>(["tablet", "effervescent", "capsule"]);
+  if (oralSolid.has(a) && oralSolid.has(b)) return true;
+  const topical = new Set<DosageForm>(["cream", "ointment", "gel"]);
+  if (topical.has(a) && topical.has(b)) return true;
   return false;
 }
 
@@ -92,8 +97,8 @@ function detectAgeGroup(name: string, activeIngredient: string) {
   return "unknown" as const;
 }
 
-function detectDosageForm(name: string) {
-  const s = normalizeText(name);
+function detectDosageForm(name: string, description?: string | null) {
+  const s = normalizeText(`${name} ${description || ""}`);
   const has = (arr: string[]) => arr.some((k) => s.includes(k));
   const hasWord = (words: string[]) =>
     words.some((w) => {
@@ -236,7 +241,7 @@ export default async function DrugDetailPage({
   const currentPrice = parsePrice(drug.price);
 
   const currentAgeGroup = detectAgeGroup(drug.name, rawActiveIngredient);
-  const currentDosageForm = detectDosageForm(drug.name);
+  const currentDosageForm = detectDosageForm(drug.name, drug.description);
   const currentStrengthKey = extractStrengthKey(drug.name, rawActiveIngredient);
 
   const activeTokens = splitActiveTokens(rawActiveIngredient);
@@ -258,6 +263,7 @@ export default async function DrugDetailPage({
           name: true,
           company: true,
           activeIngredient: true,
+          description: true,
           price: true,
           imageSourceUrl: true,
           imageLocalPath: true,
@@ -275,7 +281,7 @@ export default async function DrugDetailPage({
 
   const scored = alternativesFiltered
     .map((d) => {
-      const form = detectDosageForm(d.name);
+      const form = detectDosageForm(d.name, d.description);
       const strength = extractStrengthKey(d.name, d.activeIngredient || "");
       const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
       const strictSameForm =
@@ -283,7 +289,7 @@ export default async function DrugDetailPage({
         currentDosageForm !== "other" &&
         form !== "unknown" &&
         form !== "other" &&
-        areDosageFormsCompatible(form, currentDosageForm);
+        form === currentDosageForm;
       const sameForm =
         areDosageFormsCompatible(form, currentDosageForm);
       const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
@@ -300,6 +306,7 @@ export default async function DrugDetailPage({
       };
     })
     .sort((a, b) => {
+      if (a.strictSameForm !== b.strictSameForm) return a.strictSameForm ? -1 : 1;
       if (a.sameForm !== b.sameForm) return a.sameForm ? -1 : 1;
       if (a.exactStrength !== b.exactStrength) return a.exactStrength ? -1 : 1;
       if (a.score !== b.score) return b.score - a.score;
@@ -333,10 +340,10 @@ export default async function DrugDetailPage({
 
   const otherFormsAlternatives = scored
     .filter((x) => {
-      if (!hasAnyStrictSameForm) return false;
       if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
       if (x.form === "unknown" || x.form === "other") return false;
-      return !areDosageFormsCompatible(x.form, currentDosageForm);
+      if (hasAnyStrictSameForm) return !areDosageFormsCompatible(x.form, currentDosageForm);
+      return !x.sameForm;
     })
     .map((x) => x.drug);
 
