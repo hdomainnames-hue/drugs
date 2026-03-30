@@ -760,7 +760,7 @@ export default async function DrugDetailPage({
                   </div>
                 ) : null}
 
-                {otherAlternatives.length ? (
+                {otherAlternatives.length || sameFormUnknownStrength.length ? (
                   <div>
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
