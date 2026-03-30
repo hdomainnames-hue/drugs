@@ -263,7 +263,9 @@ export default async function DrugDetailPage({
       const strength = extractStrengthKey(d.name, d.activeIngredient || "");
       const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
       const sameForm =
-        currentDosageForm !== "unknown" ? form !== "unknown" && form === currentDosageForm : true;
+        currentDosageForm === "unknown" || currentDosageForm === "other" || form === "unknown" || form === "other"
+          ? true
+          : form === currentDosageForm;
       const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
       const score = (exactActive ? 100 : 0) + (sameForm ? 40 : 0) + (exactStrength ? 60 : 0);
       return {
@@ -308,8 +310,8 @@ export default async function DrugDetailPage({
 
   const otherFormsAlternatives = scored
     .filter((x) => {
-      if (currentDosageForm === "unknown") return false;
-      if (x.form === "unknown") return false;
+      if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
+      if (x.form === "unknown" || x.form === "other") return false;
       return x.form !== currentDosageForm;
     })
     .map((x) => x.drug);
