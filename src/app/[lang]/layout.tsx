@@ -64,11 +64,11 @@ export default async function LangLayout({
     <div
       dir={dir}
       lang={lang}
-      className="min-h-full flex flex-col bg-zinc-50 text-zinc-950 dark:bg-black dark:text-zinc-50"
+      className="app-shell min-h-full flex flex-col text-zinc-950 dark:text-zinc-50"
     >
-      <header className="sticky top-0 z-20 border-b border-zinc-200/60 bg-zinc-100/80 backdrop-blur dark:border-zinc-800/60 dark:bg-black/70">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-          <Link href={`/${lang}`} className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight">
+      <header className="sticky top-0 z-20 border-b border-zinc-200/50 bg-white/70 backdrop-blur-xl dark:border-zinc-800/60 dark:bg-zinc-950/70">
+        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
+          <Link href={`/${lang}`} className="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-sm font-semibold tracking-tight">
             <svg
               viewBox="0 0 24 24"
               className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
@@ -86,47 +86,47 @@ export default async function LangLayout({
           <div className="flex items-center gap-2">
             {lang === "ar" ? (
               <>
-                <nav className="hidden items-center gap-4 text-sm sm:flex">
+                <nav className="hidden items-center gap-2 rounded-full border border-zinc-200/80 bg-white/75 px-2 py-1 text-sm shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70 sm:flex">
                   <NavLink
                     href={`/${lang}`}
                     exact
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "homeNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/drugs`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "drugsNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/companies`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "companiesTitle")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/active-ingredients`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "activeIngredientsTitle")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/articles`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "articlesNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/faq`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "faqNav")}
                   </NavLink>
@@ -138,7 +138,7 @@ export default async function LangLayout({
                     href={`/${lang}/contact`}
                     aria-label={t(lang, "footerContact")}
                     title={t(lang, "footerContact")}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200/80 bg-white/80 text-zinc-950 transition hover:scale-105 hover:border-teal-400 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-50 dark:hover:border-teal-500"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="M4 4h16v16H4V4Z" strokeLinecap="round" strokeLinejoin="round" />
@@ -152,47 +152,47 @@ export default async function LangLayout({
               </>
             ) : (
               <>
-                <nav className="hidden items-center gap-4 text-sm sm:flex">
+                <nav className="hidden items-center gap-2 rounded-full border border-zinc-200/80 bg-white/75 px-2 py-1 text-sm shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70 sm:flex">
                   <NavLink
                     href={`/${lang}`}
                     exact
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "homeNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/drugs`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "drugsNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/companies`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "companiesTitle")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/active-ingredients`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "activeIngredientsTitle")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/articles`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "articlesNav")}
                   </NavLink>
                   <NavLink
                     href={`/${lang}/faq`}
-                    className="rounded-lg px-2 py-1 text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    activeClassName="bg-zinc-100 text-zinc-950 dark:bg-zinc-900/60 dark:text-zinc-50"
+                    className="rounded-full px-3 py-1.5 text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+                    activeClassName="bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-sm"
                   >
                     {t(lang, "faqNav")}
                   </NavLink>
@@ -204,7 +204,7 @@ export default async function LangLayout({
                     href={`/${lang}/contact`}
                     aria-label={t(lang, "footerContact")}
                     title={t(lang, "footerContact")}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200/80 bg-white/80 text-zinc-950 transition hover:scale-105 hover:border-teal-400 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-50 dark:hover:border-teal-500"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="M4 4h16v16H4V4Z" strokeLinecap="round" strokeLinejoin="round" />
@@ -223,7 +223,7 @@ export default async function LangLayout({
 
       <main className="flex flex-1 flex-col">{children}</main>
 
-      <footer className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
+      <footer className="border-t border-zinc-200/70 bg-white/60 backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/60">
         <div className="mx-auto w-full max-w-5xl px-4 py-10">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <div className="space-y-2">
@@ -313,11 +313,11 @@ export default async function LangLayout({
 
       <nav className="fixed inset-x-0 bottom-0 z-30 sm:hidden">
         <div className="mx-auto w-full max-w-5xl px-2 pb-[max(env(safe-area-inset-bottom),0.35rem)]">
-          <div className="grid h-[72px] grid-cols-5 items-center rounded-2xl border border-zinc-200/90 bg-white/95 px-1 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-zinc-800/90 dark:bg-zinc-950/95 dark:shadow-[0_-10px_30px_rgba(0,0,0,0.45)]">
+          <div className="grid h-[72px] grid-cols-5 items-center rounded-2xl border border-zinc-200/80 bg-white/85 px-1 shadow-[0_-10px_34px_rgba(20,40,80,0.14)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/85 dark:shadow-[0_-12px_34px_rgba(0,0,0,0.5)]">
             <NavLink
               href={`/${lang}/drugs`}
               className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
-              activeClassName="text-emerald-600 dark:text-emerald-400"
+              activeClassName="text-teal-600 dark:text-teal-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
@@ -329,7 +329,7 @@ export default async function LangLayout({
             <NavLink
               href={`/${lang}/companies`}
               className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
-              activeClassName="text-emerald-600 dark:text-emerald-400"
+              activeClassName="text-teal-600 dark:text-teal-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 21h18" strokeLinecap="round" strokeLinejoin="round" />
@@ -343,9 +343,9 @@ export default async function LangLayout({
               href={`/${lang}`}
               exact
               className="flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400"
-              activeClassName="text-emerald-600 dark:text-emerald-400"
+              activeClassName="text-teal-600 dark:text-teal-400"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 transition-transform active:scale-95 dark:bg-emerald-500">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-500 text-white shadow-lg shadow-teal-500/25 transition-transform active:scale-95">
                 <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.3">
                   <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -356,7 +356,7 @@ export default async function LangLayout({
             <NavLink
               href={`/${lang}/active-ingredients`}
               className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
-              activeClassName="text-emerald-600 dark:text-emerald-400"
+              activeClassName="text-teal-600 dark:text-teal-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M10 2v6l-6 10a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 18l-6-10V2" strokeLinecap="round" strokeLinejoin="round" />
@@ -368,7 +368,7 @@ export default async function LangLayout({
             <NavLink
               href={`/${lang}/articles`}
               className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
-              activeClassName="text-emerald-600 dark:text-emerald-400"
+              activeClassName="text-teal-600 dark:text-teal-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M8 6h13" strokeLinecap="round" strokeLinejoin="round" />

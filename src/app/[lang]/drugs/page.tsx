@@ -143,7 +143,7 @@ export default async function DrugsPage({
 
             <Link
               href={lang === "ar" ? "/en/drugs" : "/ar/drugs"}
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+              className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white/85 px-3 text-xs font-medium text-zinc-950 transition hover:border-teal-400 hover:text-teal-700 dark:border-zinc-800 dark:bg-zinc-950/85 dark:text-zinc-50 dark:hover:border-teal-500 dark:hover:text-teal-300"
             >
               {lang === "ar" ? t(lang, "langToEnglish") : t(lang, "langToArabic")}
             </Link>
@@ -154,11 +154,11 @@ export default async function DrugsPage({
               name="q"
               defaultValue={q}
               placeholder={t(lang, "searchPlaceholder")}
-              className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white/90 px-4 text-sm text-zinc-950 outline-none transition focus:border-teal-500 dark:border-zinc-800 dark:bg-zinc-950/90 dark:text-zinc-50 dark:focus:border-teal-400"
             />
             <button
               type="submit"
-              className="h-11 shrink-0 rounded-xl bg-zinc-950 px-5 text-sm font-medium text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="h-11 shrink-0 rounded-xl bg-gradient-to-r from-teal-500 to-blue-500 px-5 text-sm font-semibold text-white shadow-sm shadow-teal-500/20 transition hover:scale-[1.01]"
             >
               {t(lang, "search")}
             </button>
@@ -178,12 +178,12 @@ export default async function DrugsPage({
               <Link
                 key={d.remoteId}
                 href={`/${lang}/drug/${d.remoteId}`}
-                className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                className="glass-card rounded-2xl p-4 transition hover:-translate-y-0.5 hover:border-teal-400 dark:hover:border-teal-500"
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{name}</div>
-                    <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                    <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
                       <div className="min-w-0 overflow-hidden text-ellipsis wrap-anywhere">
                         {t(lang, "company")}: {company || "-"}
                       </div>
@@ -211,10 +211,10 @@ export default async function DrugsPage({
                         src={thumb}
                         alt={name}
                         loading="lazy"
-                        className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                        className="h-12 w-12 flex-none rounded-xl border border-zinc-200/90 bg-gradient-to-br from-white to-zinc-50 object-contain p-1 shadow-sm dark:border-zinc-800/90 dark:from-zinc-950 dark:to-zinc-900"
                       />
                     ) : (
-                      <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                      <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200/90 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:border-zinc-800/90 dark:from-zinc-900 dark:to-zinc-950" />
                     );
                   })()}
                 </div>
