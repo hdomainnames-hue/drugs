@@ -318,26 +318,30 @@ export default async function DrugDetailPage({
       return a.drug.remoteId - b.drug.remoteId;
     });
 
-  const sameFormExactStrength = scored
-    .filter((x) => x.sameForm && x.exactStrength)
+  const strictSameFormExactStrength = scored
+    .filter((x) => x.strictSameForm && x.exactStrength)
     .map((x) => x.drug);
 
-  const sameFormDifferentStrength = scored
+  const strictSameFormDifferentStrength = scored
     .filter((x) => {
-      if (!x.sameForm) return false;
+      if (!x.strictSameForm) return false;
       if (x.exactStrength) return false;
       if (!currentStrengthKey) return false;
       return Boolean(x.strengthKey && x.strengthKey !== currentStrengthKey);
     })
     .map((x) => x.drug);
 
-  const sameFormUnknownStrength = scored
+  const strictSameFormUnknownStrength = scored
     .filter((x) => {
-      if (!x.sameForm) return false;
+      if (!x.strictSameForm) return false;
       if (x.exactStrength) return false;
       if (currentStrengthKey && x.strengthKey) return false;
       return true;
     })
+    .map((x) => x.drug);
+
+  const compatibleButDifferentForm = scored
+    .filter((x) => x.sameForm && !x.strictSameForm)
     .map((x) => x.drug);
 
   const otherFormsAlternatives = scored
@@ -349,32 +353,35 @@ export default async function DrugDetailPage({
     .map((x) => x.drug);
 
   const cheaperAlternatives = Number.isFinite(currentPrice)
-    ? sameFormExactStrength.filter((d) => {
+    ? strictSameFormExactStrength.filter((d) => {
         const p = parsePrice(d.price);
         return Number.isFinite(p) && p < currentPrice;
       })
     : [];
 
   const otherAlternatives = Number.isFinite(currentPrice)
-    ? sameFormExactStrength.filter((d) => {
+    ? strictSameFormExactStrength.filter((d) => {
         const p = parsePrice(d.price);
         return !(Number.isFinite(p) && p < currentPrice);
       })
-    : sameFormExactStrength;
+    : strictSameFormExactStrength;
 
-  const hasAnySameFormSections =
-    sameFormExactStrength.length > 0 || sameFormDifferentStrength.length > 0 || sameFormUnknownStrength.length > 0;
-  const promotedOtherForms = hasAnySameFormSections ? [] : otherFormsAlternatives;
-  const visibleOtherForms = hasAnySameFormSections ? otherFormsAlternatives : [];
+  const hasAnyStrictSameFormSections =
+    strictSameFormExactStrength.length > 0 ||
+    strictSameFormDifferentStrength.length > 0 ||
+    strictSameFormUnknownStrength.length > 0;
+  const promotedOtherForms = hasAnyStrictSameFormSections || compatibleButDifferentForm.length > 0 ? [] : otherFormsAlternatives;
+  const visibleOtherForms = hasAnyStrictSameFormSections ? otherFormsAlternatives : [];
   const otherAlternativesList = uniqueByRemoteId([
     ...otherAlternatives,
-    ...sameFormUnknownStrength,
+    ...strictSameFormUnknownStrength,
+    ...compatibleButDifferentForm,
     ...promotedOtherForms,
   ]);
 
   const alternativesSorted = [
-    ...sameFormExactStrength,
-    ...sameFormDifferentStrength,
+    ...strictSameFormExactStrength,
+    ...strictSameFormDifferentStrength,
     ...otherAlternativesList,
     ...visibleOtherForms,
   ];
@@ -726,11 +733,11 @@ export default async function DrugDetailPage({
                               <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
                                 {trSimilar(d.remoteId, "name", d.name)}
                               </div>
-                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div>
+                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
                                 </div>
-                                <div>
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
                                 </div>
                                 <div>
@@ -745,13 +752,13 @@ export default async function DrugDetailPage({
                   </div>
                 ) : null}
 
-                {sameFormDifferentStrength.length ? (
+                {strictSameFormDifferentStrength.length ? (
                   <div>
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                       {t(lang, "differentStrengthAlternatives")}
                     </div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {sameFormDifferentStrength.slice(0, 24).map((d) => (
+                      {strictSameFormDifferentStrength.slice(0, 24).map((d) => (
                         <Link
                           key={d.remoteId}
                           href={`/${lang}/drug/${d.remoteId}`}
@@ -783,11 +790,11 @@ export default async function DrugDetailPage({
                               <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
                                 {trSimilar(d.remoteId, "name", d.name)}
                               </div>
-                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div>
+                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
                                 </div>
-                                <div>
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
                                 </div>
                                 <div>
@@ -838,11 +845,11 @@ export default async function DrugDetailPage({
                               <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
                                 {trSimilar(d.remoteId, "name", d.name)}
                               </div>
-                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div>
+                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
                                 </div>
-                                <div>
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
                                 </div>
                                 <div>
@@ -893,11 +900,11 @@ export default async function DrugDetailPage({
                               <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
                                 {trSimilar(d.remoteId, "name", d.name)}
                               </div>
-                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div>
+                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
                                 </div>
-                                <div>
+                                <div className="wrap-anywhere break-words">
                                   {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
                                 </div>
                                 <div>

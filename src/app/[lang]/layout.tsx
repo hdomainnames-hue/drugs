@@ -311,30 +311,12 @@ export default async function LangLayout({
         </div>
       </footer>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 sm:hidden">
-        <div className="relative h-[72px] w-full overflow-visible">
-          {/* Background with blur */}
-          <div className="absolute inset-x-0 bottom-0 h-16 border-t border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95" />
-          
-          {/* Notch SVG */}
-          <div className="absolute left-1/2 top-0 h-10 w-24 -translate-x-1/2 overflow-visible">
-            <svg viewBox="0 0 100 40" className="h-full w-full overflow-visible">
-              <path
-                d="M0 40h100V0c-10 0-15 2-20 10-5 8-15 15-30 15S35 18 30 10C25 2 20 0 10 0v40z"
-                className="fill-white dark:fill-zinc-950"
-              />
-              <path
-                d="M0 0.5c10 0 15 2 20 10 5 8 15 15 30 15s25-7 30-15c5-8 10-10 20-10"
-                className="fill-none stroke-zinc-200 dark:stroke-zinc-800"
-                strokeWidth="1"
-              />
-            </svg>
-          </div>
-
-          <div className="relative mx-auto grid h-16 w-full max-w-5xl grid-cols-5 px-2">
+      <nav className="fixed inset-x-0 bottom-0 z-30 sm:hidden">
+        <div className="mx-auto w-full max-w-5xl px-2 pb-[max(env(safe-area-inset-bottom),0.35rem)]">
+          <div className="grid h-[72px] grid-cols-5 items-center rounded-2xl border border-zinc-200/90 bg-white/95 px-1 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-zinc-800/90 dark:bg-zinc-950/95 dark:shadow-[0_-10px_30px_rgba(0,0,0,0.45)]">
             <NavLink
               href={`/${lang}/drugs`}
-              className="flex flex-col items-center justify-center pt-2 gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -346,7 +328,7 @@ export default async function LangLayout({
 
             <NavLink
               href={`/${lang}/companies`}
-              className="flex flex-col items-center justify-center pt-2 gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -357,25 +339,23 @@ export default async function LangLayout({
               <span>{t(lang, "companiesTitle")}</span>
             </NavLink>
 
-            <div className="relative flex items-center justify-center">
-              <NavLink
-                href={`/${lang}`}
-                exact
-                className="absolute -top-6 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-95 dark:bg-emerald-500"
-                activeClassName="ring-4 ring-white dark:ring-zinc-950"
-              >
-                <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <NavLink
+              href={`/${lang}`}
+              exact
+              className="flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400"
+              activeClassName="text-emerald-600 dark:text-emerald-400"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 transition-transform active:scale-95 dark:bg-emerald-500">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.3">
                   <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </NavLink>
-              <span className="mt-10 text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                {t(lang, "homeNav")}
               </span>
-            </div>
+              <span>{t(lang, "homeNav")}</span>
+            </NavLink>
 
             <NavLink
               href={`/${lang}/active-ingredients`}
-              className="flex flex-col items-center justify-center pt-2 gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -387,7 +367,7 @@ export default async function LangLayout({
 
             <NavLink
               href={`/${lang}/articles`}
-              className="flex flex-col items-center justify-center pt-2 gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+              className="flex flex-col items-center justify-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
               activeClassName="text-emerald-600 dark:text-emerald-400"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -404,7 +384,7 @@ export default async function LangLayout({
         </div>
       </nav>
 
-      <div className="h-16 sm:hidden" />
+      <div className="h-20 sm:hidden" />
     </div>
   );
 }
