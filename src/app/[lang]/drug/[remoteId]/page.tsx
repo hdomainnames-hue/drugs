@@ -26,6 +26,7 @@ type AgeGroup = "kids" | "adults" | "unknown";
 
 type DosageForm =
   | "tablet"
+  | "effervescent"
   | "capsule"
   | "syrup"
   | "suspension"
@@ -71,16 +72,10 @@ function detectAgeGroup(name: string, activeIngredient: string) {
     "baby",
     "junior",
     "jr",
-    "susp",
-    "suspension",
-    "drops",
-    "drp",
     "اطفال",
     "للأطفال",
     "للاطفال",
     "رضع",
-    "شراب",
-    "معلق",
   ];
   const adultHints = ["adult", "adults", "لل成人", "للكبار", "للبالغين", "بالغين"]; 
 
@@ -92,6 +87,7 @@ function detectAgeGroup(name: string, activeIngredient: string) {
 function detectDosageForm(name: string) {
   const s = normalizeText(name);
   const has = (arr: string[]) => arr.some((k) => s.includes(k));
+  if (has(["effervescent", "efferv", "fawar", "فوار"])) return "effervescent";
   if (has(["tablet", "tab", "tbl", "قرص", "اقراص", "أقراص"])) return "tablet";
   if (has(["capsule", "cap", "كبسول", "كبسولة", "كبسولات"])) return "capsule";
   if (has(["syrup", "syp", "شراب"])) return "syrup";
@@ -266,7 +262,8 @@ export default async function DrugDetailPage({
       const form = detectDosageForm(d.name);
       const strength = extractStrengthKey(d.name, d.activeIngredient || "");
       const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
-      const sameForm = currentDosageForm !== "unknown" && form !== "unknown" ? form === currentDosageForm : true;
+      const sameForm =
+        currentDosageForm !== "unknown" ? form !== "unknown" && form === currentDosageForm : true;
       const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
       const score = (exactActive ? 100 : 0) + (sameForm ? 40 : 0) + (exactStrength ? 60 : 0);
       return {
@@ -274,6 +271,8 @@ export default async function DrugDetailPage({
         score,
         exactStrength,
         sameForm,
+        form,
+        strengthKey: strength,
         priceNum: parsePrice(d.price),
       };
     })
@@ -285,26 +284,56 @@ export default async function DrugDetailPage({
       return a.drug.remoteId - b.drug.remoteId;
     });
 
-  const sameFormSorted = scored.filter((x) => x.sameForm).map((x) => x.drug);
-  const otherFormsSorted = scored.filter((x) => !x.sameForm).map((x) => x.drug);
+  const sameFormExactStrength = scored
+    .filter((x) => x.sameForm && x.exactStrength)
+    .map((x) => x.drug);
+
+  const sameFormDifferentStrength = scored
+    .filter((x) => {
+      if (!x.sameForm) return false;
+      if (x.exactStrength) return false;
+      if (!currentStrengthKey) return false;
+      return Boolean(x.strengthKey && x.strengthKey !== currentStrengthKey);
+    })
+    .map((x) => x.drug);
+
+  const sameFormUnknownStrength = scored
+    .filter((x) => {
+      if (!x.sameForm) return false;
+      if (x.exactStrength) return false;
+      if (currentStrengthKey && x.strengthKey) return false;
+      return true;
+    })
+    .map((x) => x.drug);
+
+  const otherFormsAlternatives = scored
+    .filter((x) => {
+      if (currentDosageForm === "unknown") return false;
+      if (x.form === "unknown") return false;
+      return x.form !== currentDosageForm;
+    })
+    .map((x) => x.drug);
 
   const cheaperAlternatives = Number.isFinite(currentPrice)
-    ? sameFormSorted.filter((d) => {
+    ? sameFormExactStrength.filter((d) => {
         const p = parsePrice(d.price);
         return Number.isFinite(p) && p < currentPrice;
       })
     : [];
 
   const otherAlternatives = Number.isFinite(currentPrice)
-    ? sameFormSorted.filter((d) => {
+    ? sameFormExactStrength.filter((d) => {
         const p = parsePrice(d.price);
         return !(Number.isFinite(p) && p < currentPrice);
       })
-    : sameFormSorted;
+    : sameFormExactStrength;
 
-  const otherFormsAlternatives = otherFormsSorted;
-
-  const alternativesSorted = [...sameFormSorted, ...otherFormsSorted];
+  const alternativesSorted = [
+    ...sameFormExactStrength,
+    ...sameFormDifferentStrength,
+    ...sameFormUnknownStrength,
+    ...otherFormsAlternatives,
+  ];
 
   const translations = await getOrTranslateFields(
     lang,
@@ -672,11 +701,68 @@ export default async function DrugDetailPage({
                   </div>
                 ) : null}
 
+                {sameFormDifferentStrength.length ? (
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                      {t(lang, "differentStrengthAlternatives")}
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {sameFormDifferentStrength.slice(0, 24).map((d) => (
+                        <Link
+                          key={d.remoteId}
+                          href={`/${lang}/drug/${d.remoteId}`}
+                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                        >
+                          <div className="flex flex-row-reverse items-start gap-3">
+                            {(() => {
+                              const src = d.imageSourceUrl || d.imageLocalPath;
+                              const thumb = !src
+                                ? null
+                                : src.startsWith("http://") || src.startsWith("https://")
+                                  ? src
+                                  : src.startsWith("/")
+                                    ? src
+                                    : null;
+                              return thumb ? (
+                                <img
+                                  src={thumb}
+                                  alt={trSimilar(d.remoteId, "name", d.name)}
+                                  loading="lazy"
+                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
+                              );
+                            })()}
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
+                                {trSimilar(d.remoteId, "name", d.name)}
+                              </div>
+                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                <div>
+                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
+                                </div>
+                                <div>
+                                  {t(lang, "price")}: {d.price || "-"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {otherAlternatives.length ? (
                   <div>
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {otherAlternatives.slice(0, 24).map((d) => (
+                      {[...otherAlternatives, ...sameFormUnknownStrength].slice(0, 24).map((d) => (
                         <Link
                           key={d.remoteId}
                           href={`/${lang}/drug/${d.remoteId}`}
