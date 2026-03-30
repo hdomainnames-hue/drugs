@@ -97,7 +97,7 @@ function detectAgeGroup(name: string, activeIngredient: string) {
   return "unknown" as const;
 }
 
-function detectDosageForm(name: string, description?: string | null) {
+function detectDosageForm(name: string, description?: string | null): DosageForm {
   const s = normalizeText(`${name} ${description || ""}`);
   const has = (arr: string[]) => arr.some((k) => s.includes(k));
   const hasWord = (words: string[]) =>
@@ -148,6 +148,10 @@ function splitActiveTokens(activeIngredient: string) {
 function includesAllTokens(hay: string, tokens: string[]) {
   const h = normalizeText(hay);
   return tokens.every((t) => h.includes(normalizeText(t)));
+}
+
+function uniqueByRemoteId(drugs: AlternativeDrug[]) {
+  return Array.from(new Map(drugs.map((d) => [d.remoteId, d])).values());
 }
 
 function toInt(v: string) {
@@ -336,13 +340,10 @@ export default async function DrugDetailPage({
     })
     .map((x) => x.drug);
 
-  const hasAnyStrictSameForm = scored.some((x) => x.strictSameForm);
-
   const otherFormsAlternatives = scored
     .filter((x) => {
       if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
       if (x.form === "unknown" || x.form === "other") return false;
-      if (hasAnyStrictSameForm) return !areDosageFormsCompatible(x.form, currentDosageForm);
       return !x.sameForm;
     })
     .map((x) => x.drug);
@@ -361,11 +362,21 @@ export default async function DrugDetailPage({
       })
     : sameFormExactStrength;
 
+  const hasAnySameFormSections =
+    sameFormExactStrength.length > 0 || sameFormDifferentStrength.length > 0 || sameFormUnknownStrength.length > 0;
+  const promotedOtherForms = hasAnySameFormSections ? [] : otherFormsAlternatives;
+  const visibleOtherForms = hasAnySameFormSections ? otherFormsAlternatives : [];
+  const otherAlternativesList = uniqueByRemoteId([
+    ...otherAlternatives,
+    ...sameFormUnknownStrength,
+    ...promotedOtherForms,
+  ]);
+
   const alternativesSorted = [
     ...sameFormExactStrength,
     ...sameFormDifferentStrength,
-    ...sameFormUnknownStrength,
-    ...otherFormsAlternatives,
+    ...otherAlternativesList,
+    ...visibleOtherForms,
   ];
 
   const translations = await getOrTranslateFields(
@@ -791,11 +802,11 @@ export default async function DrugDetailPage({
                   </div>
                 ) : null}
 
-                {otherAlternatives.length || sameFormUnknownStrength.length ? (
+                {otherAlternativesList.length ? (
                   <div>
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {[...otherAlternatives, ...sameFormUnknownStrength].slice(0, 24).map((d) => (
+                      {otherAlternativesList.slice(0, 24).map((d) => (
                         <Link
                           key={d.remoteId}
                           href={`/${lang}/drug/${d.remoteId}`}
@@ -846,11 +857,11 @@ export default async function DrugDetailPage({
                   </div>
                 ) : null}
 
-                {otherFormsAlternatives.length ? (
+                {visibleOtherForms.length ? (
                   <div>
                     <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherFormsAlternatives")}</div>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {otherFormsAlternatives.slice(0, 24).map((d) => (
+                      {visibleOtherForms.slice(0, 24).map((d) => (
                         <Link
                           key={d.remoteId}
                           href={`/${lang}/drug/${d.remoteId}`}
