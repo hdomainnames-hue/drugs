@@ -87,20 +87,28 @@ function detectAgeGroup(name: string, activeIngredient: string) {
 function detectDosageForm(name: string) {
   const s = normalizeText(name);
   const has = (arr: string[]) => arr.some((k) => s.includes(k));
+  const hasWord = (words: string[]) =>
+    words.some((w) => {
+      const re = new RegExp(`\\b${w.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i");
+      return re.test(s);
+    });
+
   if (has(["effervescent", "efferv", "fawar", "فوار"])) return "effervescent";
-  if (has(["tablet", "tab", "tbl", "قرص", "اقراص", "أقراص"])) return "tablet";
-  if (has(["capsule", "cap", "كبسول", "كبسولة", "كبسولات"])) return "capsule";
-  if (has(["syrup", "syp", "شراب"])) return "syrup";
-  if (has(["suspension", "susp", "معلق"])) return "suspension";
-  if (has(["drop", "drops", "drp", "نقط", "قطرة", "قطرات"])) return "drops";
-  if (has(["inj", "injection", "amp", "ampoule", "حقن", "امبول", "أمبول"])) return "injection";
+
+  if (has(["tablet", "قرص", "اقراص", "أقراص"]) || hasWord(["tab", "tbl"])) return "tablet";
+  if (has(["capsule", "كبسول", "كبسولة", "كبسولات"]) || hasWord(["cap"])) return "capsule";
+  if (has(["syrup", "شراب"]) || hasWord(["syp"])) return "syrup";
+  if (has(["suspension", "معلق"]) || hasWord(["susp"])) return "suspension";
+  if (has(["drop", "drops", "نقط", "قطرة", "قطرات"]) || hasWord(["drp"])) return "drops";
+  if (has(["injection", "ampoule", "حقن", "امبول", "أمبول"]) || hasWord(["inj", "amp"])) return "injection";
+
   if (has(["cream", "كريم"])) return "cream";
   if (has(["ointment", "مرهم"])) return "ointment";
   if (has(["gel", "جل"])) return "gel";
   if (has(["spray", "بخاخ"])) return "spray";
   if (has(["inhaler", "استنشاق", "بخاخ استنشاق"])) return "inhaler";
-  if (has(["solution", "sol", "محلول"])) return "solution";
-  if (has(["powder", "pwd", "بودرة", "مسحوق"])) return "powder";
+  if (has(["solution", "محلول"]) || hasWord(["sol"])) return "solution";
+  if (has(["powder", "بودرة", "مسحوق"]) || hasWord(["pwd"])) return "powder";
   return "unknown";
 }
 
