@@ -19,7 +19,7 @@ async function handle(req: Request) {
 
   try {
     const result = await prisma.translation.deleteMany({
-      where: { lang: lang as any },
+      where: { lang },
     });
 
     return NextResponse.json({
@@ -27,8 +27,9 @@ async function handle(req: Request) {
       message: `Cache cleared for ${lang}`,
       deleted: result.count,
     });
-  } catch (error: any) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 

@@ -5,9 +5,10 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  let body: any = null;
+  let body: Record<string, unknown> | null = null;
   try {
-    body = await req.json();
+    const parsed: unknown = await req.json();
+    body = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }

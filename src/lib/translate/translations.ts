@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
 import { sha256 } from "@/lib/translate/gemini";
-import { translateText } from "@/lib/translate/provider";
+import { hasTranslationProviderAvailable, translateText } from "@/lib/translate/provider";
 
 type EntityType = "Drug" | "Article" | "FAQ";
 
@@ -107,6 +107,14 @@ export async function getOrTranslateFields(
     if (!Number.isFinite(n) || n <= 0) return 0;
     return Math.min(50, n);
   })();
+
+  const providerAvailable = maxPerRequest > 0 ? await hasTranslationProviderAvailable() : false;
+  if (!providerAvailable) {
+    for (const r of missing) {
+      out[byKey(r)] = t(lang, "translationPending");
+    }
+    return out;
+  }
 
   const toTranslate = maxPerRequest > 0 ? missing.slice(0, maxPerRequest) : [];
   const skipped = maxPerRequest > 0 ? missing.slice(maxPerRequest) : missing;

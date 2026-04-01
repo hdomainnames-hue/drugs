@@ -6,6 +6,16 @@ type GeminiTranslateOptions = {
   targetLang: "ar";
 };
 
+type GeminiResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+};
+
 function normalizeKeys(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw
@@ -85,10 +95,10 @@ export async function geminiTranslateText({ apiKeys, text, targetLang }: GeminiT
       throw new Error(msg);
     }
 
-    const data = (await res.json()) as any;
+    const data = (await res.json()) as GeminiResponse;
     const out =
       data?.candidates?.[0]?.content?.parts
-        ?.map((p: any) => (typeof p?.text === "string" ? p.text : ""))
+        ?.map((part) => (typeof part?.text === "string" ? part.text : ""))
         .join("")
         .trim() ?? "";
 

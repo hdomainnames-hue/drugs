@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   try {
     const translated = await translateText(text, {
-      entityType: "Health" as any,
+      entityType: "Health",
       field,
       targetLang: "ar",
     });

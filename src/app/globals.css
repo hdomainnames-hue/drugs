@@ -3,13 +3,17 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --surface: #ffffff;
-  --surface-soft: #f7faf9;
-  --border-soft: #e7eeec;
-  --brand: #0d9488;
-  --brand-2: #2563eb;
+  --background: #f5f7fb;
+  --foreground: #101828;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-strong: #ffffff;
+  --surface-soft: #edf3ff;
+  --border-soft: rgba(155, 181, 255, 0.22);
+  --brand: #2563eb;
+  --brand-2: #8b5cf6;
+  --brand-3: #06b6d4;
+  --shadow-soft: 0 18px 70px rgba(17, 24, 39, 0.08);
+  --shadow-strong: 0 28px 80px rgba(37, 99, 235, 0.16);
 }
 
 @theme inline {
@@ -20,17 +24,24 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --surface: #0f1115;
-  --surface-soft: #131722;
-  --border-soft: #252b3a;
-  --brand: #2dd4bf;
-  --brand-2: #60a5fa;
+  --background: #060816;
+  --foreground: #eff3ff;
+  --surface: rgba(10, 15, 32, 0.84);
+  --surface-strong: #0b1224;
+  --surface-soft: #101934;
+  --border-soft: rgba(125, 148, 255, 0.22);
+  --brand: #60a5fa;
+  --brand-2: #a78bfa;
+  --brand-3: #22d3ee;
+  --shadow-soft: 0 22px 80px rgba(0, 0, 0, 0.4);
+  --shadow-strong: 0 28px 100px rgba(96, 165, 250, 0.16);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(900px 440px at 10% -5%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 65%),
+    radial-gradient(820px 420px at 100% 0%, color-mix(in srgb, var(--brand-2) 16%, transparent), transparent 62%),
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 82%, white 18%) 0%, var(--background) 100%);
   color: var(--foreground);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
@@ -42,19 +53,166 @@ body {
 }
 
 .app-shell {
+  position: relative;
   background:
-    radial-gradient(1200px 420px at 85% -10%, color-mix(in srgb, var(--brand-2) 20%, transparent), transparent 65%),
-    radial-gradient(1000px 360px at 15% -5%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 60%),
+    radial-gradient(1200px 420px at 85% -10%, color-mix(in srgb, var(--brand-2) 18%, transparent), transparent 65%),
+    radial-gradient(1000px 360px at 15% -5%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 60%),
+    radial-gradient(820px 320px at 50% 16%, color-mix(in srgb, var(--brand-3) 9%, transparent), transparent 72%),
     var(--background);
 }
 
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 12%, black 88%, transparent 100%);
+}
+
 .glass-card {
-  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 96%, transparent), color-mix(in srgb, var(--surface) 88%, transparent)),
+    color-mix(in srgb, var(--surface) 82%, transparent);
   border: 1px solid var(--border-soft);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
 }
 
 .soft-card {
   background: var(--surface-soft);
   border: 1px solid var(--border-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.section-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  background:
+    radial-gradient(400px 160px at 10% 0%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 70%),
+    radial-gradient(420px 180px at 100% 0%, color-mix(in srgb, var(--brand-2) 11%, transparent), transparent 68%),
+    color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+}
+
+.section-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto -10% -55% auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-2) 14%, transparent) 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+.hero-orb-a {
+  inset: -36px auto auto -36px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 28%, transparent) 0%, transparent 70%);
+}
+
+.hero-orb-b {
+  inset: auto -30px -42px auto;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-2) 24%, transparent) 0%, transparent 70%);
+}
+
+.glow-pill {
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 12%, white 88%), color-mix(in srgb, var(--brand-2) 12%, white 88%));
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--brand) 16%, transparent);
+}
+
+.dark .glow-pill {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 18%, transparent), color-mix(in srgb, var(--brand-2) 18%, transparent));
+}
+
+.premium-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 98%, transparent), color-mix(in srgb, var(--surface) 92%, transparent)),
+    var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.premium-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 8%, transparent), transparent 35%, color-mix(in srgb, var(--brand-2) 8%, transparent));
+  pointer-events: none;
+}
+
+.icon-chip {
+  display: inline-flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 20%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, white 84%), color-mix(in srgb, var(--brand-2) 16%, white 84%));
+  color: color-mix(in srgb, var(--brand-2) 55%, var(--foreground));
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+.dark .icon-chip {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 18%, transparent), color-mix(in srgb, var(--brand-2) 20%, transparent));
+}
+
+.ad-slot {
+  position: relative;
+  min-height: 136px;
+  overflow: hidden;
+  border: 1px dashed color-mix(in srgb, var(--brand) 30%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--brand) 7%, white 93%), color-mix(in srgb, var(--brand-2) 8%, white 92%)),
+    color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.dark .ad-slot {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--brand) 14%, transparent), color-mix(in srgb, var(--brand-2) 14%, transparent)),
+    color-mix(in srgb, var(--surface) 86%, transparent);
+}
+
+.ad-slot::before {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto 60%;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-3) 18%, transparent) 0%, transparent 72%);
+}
+
+.page-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .page-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    align-items: start;
+  }
 }

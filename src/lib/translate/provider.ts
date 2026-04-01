@@ -75,6 +75,14 @@ async function getTranslateSettings(): Promise<TranslateSettings> {
   return value;
 }
 
+export async function hasTranslationProviderAvailable() {
+  if (getGeminiKeysFromEnv().length > 0) return true;
+  if ((process.env.GROQ_API_KEY || "").split(",").map((key) => key.trim()).filter(Boolean).length > 0) return true;
+
+  const settings = await getTranslateSettings();
+  return Boolean(settings.geminiApiKeys?.length || settings.groqApiKeys?.length);
+}
+
 async function translateWithGemini(text: string): Promise<string> {
   const settings = await getTranslateSettings();
   const fromDb = settings.geminiApiKeys?.length ? settings.geminiApiKeys : undefined;

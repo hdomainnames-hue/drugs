@@ -10,6 +10,8 @@ import { ImageLightbox } from "@/components/image-lightbox";
 import SmartBackLink from "@/components/smart-back-link";
 import { getOrTranslateFields } from "@/lib/translate/translations";
 
+export const revalidate = 3600;
+
 type AlternativeDrug = Prisma.DrugGetPayload<{
   select: {
     remoteId: true;
@@ -22,8 +24,6 @@ type AlternativeDrug = Prisma.DrugGetPayload<{
     imageLocalPath: true;
   };
 }>;
-
-type AgeGroup = "kids" | "adults" | "unknown";
 
 type DosageForm =
   | "tablet"
@@ -42,6 +42,109 @@ type DosageForm =
   | "powder"
   | "other"
   | "unknown";
+
+type AgeGroup = "kids" | "adults" | "unknown";
+
+type IngredientProfile = {
+  normalized: string;
+  components: string[];
+  tokens: string[];
+};
+
+type IngredientSimilarity = {
+  overlapCount: number;
+  overlapRatio: number;
+  exactNormalized: boolean;
+  exactComponents: boolean;
+  passes: boolean;
+};
+
+type ScoredAlternative = {
+  drug: AlternativeDrug;
+  score: number;
+  exactStrength: boolean;
+  sameForm: boolean;
+  strictSameForm: boolean;
+  form: DosageForm;
+  strengthKey: string;
+  priceNum: number;
+  ingredientSimilarity: IngredientSimilarity;
+  differentCompany: boolean;
+  matchTone: "strong" | "good" | "partial";
+};
+
+const ingredientStopwords = new Set([
+  "hydrochloride",
+  "hcl",
+  "sodium",
+  "potassium",
+  "calcium",
+  "acetate",
+  "phosphate",
+  "sulfate",
+  "sulphate",
+  "nitrate",
+  "chloride",
+  "bromide",
+  "maleate",
+  "tartrate",
+  "succinate",
+  "citrate",
+  "base",
+  "extended",
+  "release",
+  "xr",
+  "sr",
+  "cr",
+  "plus",
+  "forte",
+  "extra",
+  "compound",
+  "comp",
+  "oral",
+  "film",
+  "coated",
+  "tablet",
+  "tablets",
+  "capsule",
+  "capsules",
+  "syrup",
+  "suspension",
+  "solution",
+  "cream",
+  "gel",
+  "ointment",
+  "spray",
+  "inhaler",
+  "powder",
+  "drops",
+  "ampoule",
+  "injection",
+  "حقن",
+  "شراب",
+  "معلق",
+  "محلول",
+  "كريم",
+  "مرهم",
+  "جل",
+  "بخاخ",
+  "قطرات",
+  "قطرة",
+  "كبسول",
+  "كبسولة",
+  "كبسولات",
+  "قرص",
+  "أقراص",
+  "اقراص",
+  "فوار",
+  "ممتد",
+  "المدى",
+  "صوديوم",
+  "بوتاسيوم",
+  "كالسيوم",
+  "هيدروكلوريد",
+  "هيدروكلورايد",
+]);
 
 function areDosageFormsCompatible(a: DosageForm, b: DosageForm) {
   if (a === "unknown" || a === "other" || b === "unknown" || b === "other") return true;
@@ -72,7 +175,7 @@ function normalizeText(s: string | null | undefined) {
     .trim();
 }
 
-function detectAgeGroup(name: string, activeIngredient: string) {
+function detectAgeGroup(name: string, activeIngredient: string): AgeGroup {
   const s = `${normalizeText(name)} ${normalizeText(activeIngredient)}`;
   const kidsHints = [
     "pediatric",
@@ -92,9 +195,9 @@ function detectAgeGroup(name: string, activeIngredient: string) {
   ];
   const adultHints = ["adult", "adults", "لل成人", "للكبار", "للبالغين", "بالغين"]; 
 
-  if (kidsHints.some((k) => s.includes(k))) return "kids" as const;
-  if (adultHints.some((k) => s.includes(k))) return "adults" as const;
-  return "unknown" as const;
+  if (kidsHints.some((k) => s.includes(k))) return "kids";
+  if (adultHints.some((k) => s.includes(k))) return "adults";
+  return "unknown";
 }
 
 function detectDosageForm(name: string, description?: string | null): DosageForm {
@@ -125,6 +228,12 @@ function detectDosageForm(name: string, description?: string | null): DosageForm
   return "unknown";
 }
 
+function resolveDosageForm(name: string, description?: string | null): DosageForm {
+  const byName = detectDosageForm(name);
+  if (byName !== "unknown" && byName !== "other") return byName;
+  return detectDosageForm(name, description);
+}
+
 function extractStrengthKey(name: string, activeIngredient: string) {
   const s = `${normalizeText(name)} ${normalizeText(activeIngredient)}`;
   const m = s.match(/(\d+(?:[\.,]\d+)?)\s*(mcg|ug|mg|g|iu|%)\b(?:\s*\/\s*(\d+(?:[\.,]\d+)?)\s*(ml|l)\b)?/i);
@@ -136,27 +245,136 @@ function extractStrengthKey(name: string, activeIngredient: string) {
   return `${n1}${u1}${n2 ? `/${n2}${u2}` : ""}`;
 }
 
-function splitActiveTokens(activeIngredient: string) {
-  const s = normalizeText(activeIngredient);
-  return s
-    .split(/[\+\/,&؛،]/g)
-    .map((x) => x.trim())
-    .filter((x) => x.length >= 3)
-    .slice(0, 4);
+function buildIngredientProfile(activeIngredient: string | null | undefined): IngredientProfile {
+  const normalized = normalizeText(activeIngredient)
+    .replace(/[()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const components = normalized
+    .split(/[\+\/,&؛،]|(?:\band\b)|(?:\bwith\b)|(?:\sو\s)/g)
+    .map((part) =>
+      part
+        .split(/[\s-]+/g)
+        .map((token) => token.trim())
+        .filter(
+          (token) =>
+            token.length >= 3 &&
+            !ingredientStopwords.has(token) &&
+            !/^\d/.test(token) &&
+            !/^(mcg|ug|mg|g|iu|ml|l|%)$/i.test(token),
+        )
+        .join(" ")
+        .trim(),
+    )
+    .filter(Boolean);
+
+  const tokens = Array.from(new Set(components.flatMap((part) => part.split(/\s+/g).filter(Boolean))));
+
+  return {
+    normalized,
+    components,
+    tokens,
+  };
 }
 
-function includesAllTokens(hay: string, tokens: string[]) {
-  const h = normalizeText(hay);
-  return tokens.every((t) => h.includes(normalizeText(t)));
+function getIngredientSimilarity(base: IngredientProfile, candidate: IngredientProfile): IngredientSimilarity {
+  if (!base.tokens.length || !candidate.tokens.length) {
+    return {
+      overlapCount: 0,
+      overlapRatio: 0,
+      exactNormalized: false,
+      exactComponents: false,
+      passes: false,
+    };
+  }
+
+  const sharedTokens = base.tokens.filter((token) => candidate.tokens.includes(token));
+  const overlapCount = sharedTokens.length;
+  const overlapRatio = overlapCount / base.tokens.length;
+  const exactNormalized = Boolean(base.normalized && base.normalized === candidate.normalized);
+  const exactComponents = base.components.length > 0 && base.components.every((part) => candidate.components.includes(part));
+  const similarCombo =
+    base.components.length > 1
+      ? overlapRatio >= 0.72 && Math.abs(candidate.components.length - base.components.length) <= 1
+      : false;
+  const passes = exactNormalized || exactComponents || similarCombo || overlapRatio >= 0.5 || overlapCount >= 2;
+
+  return {
+    overlapCount,
+    overlapRatio,
+    exactNormalized,
+    exactComponents,
+    passes,
+  };
 }
 
 function uniqueByRemoteId(drugs: AlternativeDrug[]) {
   return Array.from(new Map(drugs.map((d) => [d.remoteId, d])).values());
 }
 
+function resolveThumb(src?: string | null, local?: string | null) {
+  const value = src || local;
+  if (!value) return null;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  if (value.startsWith("/")) return value;
+  return null;
+}
+
+function formatDosageForm(lang: Lang, form: DosageForm) {
+  const map: Record<DosageForm, { ar: string; en: string }> = {
+    tablet: { ar: "أقراص", en: "Tablet" },
+    effervescent: { ar: "فوار", en: "Effervescent" },
+    capsule: { ar: "كبسولات", en: "Capsule" },
+    syrup: { ar: "شراب", en: "Syrup" },
+    suspension: { ar: "معلق", en: "Suspension" },
+    drops: { ar: "قطرات", en: "Drops" },
+    injection: { ar: "حقن", en: "Injection" },
+    cream: { ar: "كريم", en: "Cream" },
+    ointment: { ar: "مرهم", en: "Ointment" },
+    gel: { ar: "جل", en: "Gel" },
+    spray: { ar: "بخاخ", en: "Spray" },
+    inhaler: { ar: "استنشاق", en: "Inhaler" },
+    solution: { ar: "محلول", en: "Solution" },
+    powder: { ar: "مسحوق", en: "Powder" },
+    other: { ar: "أخرى", en: "Other" },
+    unknown: { ar: "غير محدد", en: "Unknown" },
+  };
+  return map[form][lang];
+}
+
+function formatAgeGroup(lang: Lang, ageGroup: AgeGroup) {
+  if (ageGroup === "kids") return lang === "ar" ? "أطفال" : "Kids";
+  if (ageGroup === "adults") return lang === "ar" ? "بالغون" : "Adults";
+  return lang === "ar" ? "غير محدد" : "Unknown";
+}
+
+function matchToneLabel(lang: Lang, tone: ScoredAlternative["matchTone"]) {
+  if (tone === "strong") return lang === "ar" ? "مطابقة قوية" : "Strong match";
+  if (tone === "good") return lang === "ar" ? "مطابقة جيدة" : "Good match";
+  return lang === "ar" ? "مطابقة جزئية" : "Partial match";
+}
+
 function toInt(v: string) {
   const n = Number.parseInt(v, 10);
   return Number.isFinite(n) ? n : NaN;
+}
+
+export async function generateStaticParams() {
+  try {
+    const drugs = await prisma.drug.findMany({
+      select: { remoteId: true },
+      orderBy: { updatedAt: "desc" },
+      take: 300,
+    });
+
+    return drugs.flatMap((drug) => [
+      { lang: "ar", remoteId: String(drug.remoteId) },
+      { lang: "en", remoteId: String(drug.remoteId) },
+    ]);
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -245,23 +463,21 @@ export default async function DrugDetailPage({
   const currentPrice = parsePrice(drug.price);
 
   const currentAgeGroup = detectAgeGroup(drug.name, rawActiveIngredient);
-  const currentDosageForm = detectDosageForm(drug.name, drug.description);
+  const currentDosageForm = resolveDosageForm(drug.name, drug.description);
   const currentStrengthKey = extractStrengthKey(drug.name, rawActiveIngredient);
+  const ingredientProfile = buildIngredientProfile(rawActiveIngredient || drug.name);
+  const ingredientQueryTokens = ingredientProfile.tokens.slice(0, 6);
 
-  const activeTokens = splitActiveTokens(rawActiveIngredient);
-
-  const alternativesCandidates: AlternativeDrug[] = activeTokens.length
+  const alternativesCandidates: AlternativeDrug[] = ingredientQueryTokens.length
     ? ((await prisma.drug.findMany({
         where: {
           remoteId: { not: drug.remoteId },
-          AND: activeTokens.map((tok) => ({
-            activeIngredient: {
-              contains: tok,
-              mode: "insensitive",
-            },
-          })),
+          OR: ingredientQueryTokens.flatMap((token) => [
+            { activeIngredient: { contains: token, mode: "insensitive" as const } },
+            { name: { contains: token, mode: "insensitive" as const } },
+          ]),
         },
-        take: 250,
+        take: 320,
         select: {
           remoteId: true,
           name: true,
@@ -275,18 +491,19 @@ export default async function DrugDetailPage({
       })) as AlternativeDrug[])
     : [];
 
-  const alternativesFiltered = alternativesCandidates
-    .filter((d) => includesAllTokens(d.activeIngredient || "", activeTokens))
-    .filter((d) => {
-      const ag = detectAgeGroup(d.name, d.activeIngredient || "");
-      if (currentAgeGroup === "unknown" || ag === "unknown") return true;
-      return ag === currentAgeGroup;
-    });
+  const scored = alternativesCandidates
+    .map((candidate): ScoredAlternative | null => {
+      const candidateProfile = buildIngredientProfile(candidate.activeIngredient || candidate.name);
+      const ingredientSimilarity = getIngredientSimilarity(ingredientProfile, candidateProfile);
+      if (!ingredientSimilarity.passes) return null;
 
-  const scored = alternativesFiltered
-    .map((d) => {
-      const form = detectDosageForm(d.name, d.description);
-      const strength = extractStrengthKey(d.name, d.activeIngredient || "");
+      const candidateAgeGroup = detectAgeGroup(candidate.name, candidate.activeIngredient || "");
+      if (currentAgeGroup !== "unknown" && candidateAgeGroup !== "unknown" && candidateAgeGroup !== currentAgeGroup) {
+        return null;
+      }
+
+      const form = resolveDosageForm(candidate.name, candidate.description);
+      const strength = extractStrengthKey(candidate.name, candidate.activeIngredient || "");
       const exactStrength = Boolean(currentStrengthKey && strength && strength === currentStrengthKey);
       const strictSameForm =
         currentDosageForm !== "unknown" &&
@@ -294,97 +511,92 @@ export default async function DrugDetailPage({
         form !== "unknown" &&
         form !== "other" &&
         form === currentDosageForm;
-      const sameForm =
-        areDosageFormsCompatible(form, currentDosageForm);
-      const exactActive = normalizeText(d.activeIngredient) === normalizeText(rawActiveIngredient);
-      const score = (exactActive ? 100 : 0) + (sameForm ? 40 : 0) + (exactStrength ? 60 : 0);
+      const sameForm = areDosageFormsCompatible(form, currentDosageForm);
+      const exactActive = ingredientSimilarity.exactNormalized || ingredientSimilarity.exactComponents;
+      const differentCompany = Boolean(rawCompany) && normalizeText(candidate.company) !== normalizeText(rawCompany);
+      const score =
+        (exactActive ? 120 : 0) +
+        ingredientSimilarity.overlapCount * 26 +
+        Math.round(ingredientSimilarity.overlapRatio * 120) +
+        (strictSameForm ? 55 : 0) +
+        (!strictSameForm && sameForm ? 25 : 0) +
+        (exactStrength ? 45 : 0) +
+        (differentCompany ? 12 : 0);
+      const matchTone: ScoredAlternative["matchTone"] =
+        exactActive && strictSameForm ? "strong" : score >= 170 ? "good" : "partial";
+
       return {
-        drug: d,
+        drug: candidate,
         score,
         exactStrength,
         sameForm,
         strictSameForm,
         form,
         strengthKey: strength,
-        priceNum: parsePrice(d.price),
+        priceNum: parsePrice(candidate.price),
+        ingredientSimilarity,
+        differentCompany,
+        matchTone,
       };
     })
+    .filter((candidate): candidate is ScoredAlternative => Boolean(candidate))
     .sort((a, b) => {
       if (a.strictSameForm !== b.strictSameForm) return a.strictSameForm ? -1 : 1;
-      if (a.sameForm !== b.sameForm) return a.sameForm ? -1 : 1;
       if (a.exactStrength !== b.exactStrength) return a.exactStrength ? -1 : 1;
+      if (a.ingredientSimilarity.exactComponents !== b.ingredientSimilarity.exactComponents) {
+        return a.ingredientSimilarity.exactComponents ? -1 : 1;
+      }
+      if (a.sameForm !== b.sameForm) return a.sameForm ? -1 : 1;
       if (a.score !== b.score) return b.score - a.score;
       if (a.priceNum !== b.priceNum) return a.priceNum - b.priceNum;
       return a.drug.remoteId - b.drug.remoteId;
     });
 
-  const strictSameFormExactStrength = scored
-    .filter((x) => x.strictSameForm && x.exactStrength)
-    .map((x) => x.drug);
-
-  const strictSameFormDifferentStrength = scored
-    .filter((x) => {
-      if (!x.strictSameForm) return false;
-      if (x.exactStrength) return false;
-      if (!currentStrengthKey) return false;
-      return Boolean(x.strengthKey && x.strengthKey !== currentStrengthKey);
-    })
-    .map((x) => x.drug);
-
-  const strictSameFormUnknownStrength = scored
-    .filter((x) => {
-      if (!x.strictSameForm) return false;
-      if (x.exactStrength) return false;
-      if (currentStrengthKey && x.strengthKey) return false;
-      return true;
-    })
-    .map((x) => x.drug);
-
-  const compatibleButDifferentForm = scored
-    .filter((x) => x.sameForm && !x.strictSameForm)
-    .map((x) => x.drug);
-
-  const otherFormsAlternatives = scored
-    .filter((x) => {
-      if (currentDosageForm === "unknown" || currentDosageForm === "other") return false;
-      if (x.form === "unknown" || x.form === "other") return false;
-      return !x.sameForm;
-    })
-    .map((x) => x.drug);
+  const strongAlternatives = scored
+    .filter((candidate) => candidate.strictSameForm && (candidate.exactStrength || !currentStrengthKey || candidate.score >= 190))
+    .map((candidate) => candidate.drug);
 
   const cheaperAlternatives = Number.isFinite(currentPrice)
-    ? strictSameFormExactStrength.filter((d) => {
-        const p = parsePrice(d.price);
-        return Number.isFinite(p) && p < currentPrice;
+    ? strongAlternatives.filter((candidate) => {
+        const price = parsePrice(candidate.price);
+        return Number.isFinite(price) && price < currentPrice;
       })
     : [];
 
-  const otherAlternatives = Number.isFinite(currentPrice)
-    ? strictSameFormExactStrength.filter((d) => {
-        const p = parsePrice(d.price);
-        return !(Number.isFinite(p) && p < currentPrice);
+  const premiumAlternatives = Number.isFinite(currentPrice)
+    ? strongAlternatives.filter((candidate) => {
+        const price = parsePrice(candidate.price);
+        return !(Number.isFinite(price) && price < currentPrice);
       })
-    : strictSameFormExactStrength;
+    : strongAlternatives;
 
-  const hasAnyStrictSameFormSections =
-    strictSameFormExactStrength.length > 0 ||
-    strictSameFormDifferentStrength.length > 0 ||
-    strictSameFormUnknownStrength.length > 0;
-  const promotedOtherForms = hasAnyStrictSameFormSections || compatibleButDifferentForm.length > 0 ? [] : otherFormsAlternatives;
-  const visibleOtherForms = hasAnyStrictSameFormSections ? otherFormsAlternatives : [];
-  const otherAlternativesList = uniqueByRemoteId([
-    ...otherAlternatives,
-    ...strictSameFormUnknownStrength,
-    ...compatibleButDifferentForm,
-    ...promotedOtherForms,
-  ]);
+  const strictSameFormDifferentStrength = scored
+    .filter((candidate) => {
+      if (!candidate.strictSameForm) return false;
+      if (candidate.exactStrength) return false;
+      if (!currentStrengthKey) return false;
+      return Boolean(candidate.strengthKey && candidate.strengthKey !== currentStrengthKey);
+    })
+    .map((candidate) => candidate.drug);
 
-  const alternativesSorted = [
-    ...strictSameFormExactStrength,
+  const closeAlternatives = scored
+    .filter((candidate) => !strongAlternatives.some((drugItem) => drugItem.remoteId === candidate.drug.remoteId))
+    .filter((candidate) => candidate.sameForm)
+    .map((candidate) => candidate.drug);
+
+  const formShiftAlternatives = scored
+    .filter((candidate) => !candidate.sameForm && candidate.form !== "unknown" && candidate.form !== "other")
+    .map((candidate) => candidate.drug);
+
+  const visibleOtherForms = uniqueByRemoteId(formShiftAlternatives).slice(0, 24);
+  const otherAlternativesList = uniqueByRemoteId(closeAlternatives).slice(0, 24);
+  const alternativesSorted = uniqueByRemoteId([
+    ...cheaperAlternatives,
+    ...premiumAlternatives,
     ...strictSameFormDifferentStrength,
     ...otherAlternativesList,
     ...visibleOtherForms,
-  ];
+  ]);
 
   const translations = await getOrTranslateFields(
     lang,
@@ -416,6 +628,29 @@ export default async function DrugDetailPage({
   };
 
   const otherLang: Lang = lang === "ar" ? "en" : "ar";
+  const alternativesByRemoteId = new Map(scored.map((candidate) => [candidate.drug.remoteId, candidate]));
+  const alternativesIntro =
+    lang === "ar"
+      ? "تم ترشيح البدائل آلياً اعتماداً على المادة الفعالة، الشكل الدوائي، التركيز، الفئة العمرية، والسعر دون الاعتماد على حقل البدائل غير الدقيق في قاعدة البيانات."
+      : "Alternatives are ranked automatically using active ingredient, dosage form, strength, age group, and price without relying on the inaccurate database relation field.";
+  const summaryTiles = [
+    {
+      label: lang === "ar" ? "الشكل الدوائي" : "Dosage form",
+      value: formatDosageForm(lang, currentDosageForm),
+    },
+    {
+      label: lang === "ar" ? "التركيز" : "Strength",
+      value: currentStrengthKey || (lang === "ar" ? "غير محدد" : "Unknown"),
+    },
+    {
+      label: lang === "ar" ? "الفئة العمرية" : "Age group",
+      value: formatAgeGroup(lang, currentAgeGroup),
+    },
+    {
+      label: lang === "ar" ? "البدائل المرشحة" : "Recommended alternatives",
+      value: String(alternativesSorted.length),
+    },
+  ] as const;
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const pageUrl = baseUrl ? new URL(`/${lang}/drug/${drug.remoteId}`, baseUrl).toString() : undefined;
@@ -463,6 +698,11 @@ export default async function DrugDetailPage({
     activeIngredient: activeIngredient ?? undefined,
     url: pageUrl,
     inLanguage: lang,
+    isSimilarTo: alternativesSorted.slice(0, 6).map((candidate) => ({
+      "@type": "Drug",
+      name: trSimilar(candidate.remoteId, "name", candidate.name),
+      url: baseUrl ? new URL(`/${lang}/drug/${candidate.remoteId}`, baseUrl).toString() : `/${lang}/drug/${candidate.remoteId}`,
+    })),
   };
 
   const descriptionSections = (() => {
@@ -542,385 +782,288 @@ export default async function DrugDetailPage({
     return cleaned;
   })();
 
+  const renderAlternativeCard = (candidate: AlternativeDrug) => {
+    const scoreMeta = alternativesByRemoteId.get(candidate.remoteId);
+    const thumb = resolveThumb(candidate.imageSourceUrl, candidate.imageLocalPath);
+
+    return (
+      <Link
+        key={candidate.remoteId}
+        href={`/${lang}/drug/${candidate.remoteId}`}
+        className="premium-card group rounded-[26px] p-4 transition hover:-translate-y-1"
+      >
+        <div className="flex items-start gap-4">
+          {thumb ? (
+            <img
+              src={thumb}
+              alt={trSimilar(candidate.remoteId, "name", candidate.name)}
+              loading="lazy"
+              className="h-[4.5rem] w-[4.5rem] rounded-[20px] border border-white/50 bg-white/90 object-contain p-2 shadow-[0_14px_26px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-[#0b1326]"
+            />
+          ) : (
+            <div className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[20px] border border-white/50 bg-white/70 dark:border-white/10 dark:bg-[#0b1326]">
+              <svg viewBox="0 0 24 24" className="h-7 w-7 text-zinc-300 dark:text-zinc-700" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="text-sm font-semibold text-zinc-950 transition group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
+                {trSimilar(candidate.remoteId, "name", candidate.name)}
+              </div>
+              {scoreMeta ? (
+                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-500/12 dark:text-blue-300">
+                  {matchToneLabel(lang, scoreMeta.matchTone)}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/60 px-3 py-2.5 dark:bg-white/6">
+                <div className="font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                <div className="mt-1 wrap-anywhere text-sm text-zinc-900 dark:text-zinc-100">
+                  {trSimilar(candidate.remoteId, "company", candidate.company || "-")}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white/60 px-3 py-2.5 dark:bg-white/6">
+                <div className="font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                <div className="mt-1 wrap-anywhere text-sm text-zinc-900 dark:text-zinc-100">
+                  {trSimilar(candidate.remoteId, "activeIngredient", candidate.activeIngredient || "-")}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+              <span className="rounded-full bg-violet-50 px-3 py-1 font-semibold text-violet-700 dark:bg-violet-500/12 dark:text-violet-300">
+                {t(lang, "price")}: {candidate.price || "-"}
+              </span>
+              {scoreMeta ? (
+                <span className="rounded-full bg-cyan-50 px-3 py-1 font-semibold text-cyan-700 dark:bg-cyan-500/12 dark:text-cyan-300">
+                  {formatDosageForm(lang, scoreMeta.form)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  };
+
   return (
     <div className="flex-1">
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(drugJsonLd) }}
-        />
+      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drugJsonLd) }} />
+
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-3">
             <SmartBackLink lang={lang} />
-
             <Link
               href={`/${otherLang}/drug/${drug.remoteId}`}
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-950 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-zinc-600"
+              className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/50 bg-white/70 px-4 text-sm font-medium text-zinc-950 transition hover:-translate-y-0.5 hover:border-blue-400 dark:border-white/10 dark:bg-white/7 dark:text-white dark:hover:border-blue-400"
             >
               {lang === "ar" ? t(lang, "langToEnglish") : t(lang, "langToArabic")}
             </Link>
           </div>
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
+          <section className="section-shell rounded-[34px] p-6 sm:p-8">
+            <div className="hero-orb hero-orb-a" />
+            <div className="hero-orb hero-orb-b" />
+            <div className="relative z-10 page-grid">
+              <div className="space-y-5">
+                <div className="glow-pill inline-flex rounded-full px-3 py-1 text-xs font-semibold text-zinc-900 dark:text-white">
+                  {lang === "ar" ? "صفحة دواء ثابتة ومهيأة لمحركات البحث" : "Static-friendly, search-optimized drug page"}
+                </div>
+                <div className="space-y-3">
+                  <div className="text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">{t(lang, "overview")}</div>
+                  <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white sm:text-4xl">{drugName}</h1>
+                  <div className="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                    {lang === "ar"
+                      ? "صفحة تفصيلية مصممة للتصفح السريع، الربط الداخلي، واقتراح بدائل أكثر دقة."
+                      : "A fast, detailed page designed for internal linking, search discovery, and more accurate alternative suggestions."}
+                  </div>
+                  <div className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/12 dark:text-blue-300">
+                    {t(lang, "idLabel")}: {drug.remoteId}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {summaryTiles.map((tile) => (
+                    <div key={tile.label} className="premium-card rounded-3xl p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{tile.label}</div>
+                      <div className="mt-3 text-base font-semibold text-zinc-950 dark:text-white">{tile.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                  {rawCompany ? (
+                    <Link href={`/${lang}/companies/${encodeURIComponent(rawCompany)}`} className="premium-card rounded-3xl p-4 transition hover:-translate-y-0.5">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                      <div className="mt-3 wrap-anywhere text-base font-semibold text-zinc-950 dark:text-white">{company || rawCompany}</div>
+                    </Link>
+                  ) : (
+                    <div className="premium-card rounded-3xl p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                      <div className="mt-3 text-base font-semibold text-zinc-950 dark:text-white">-</div>
+                    </div>
+                  )}
+
+                  {rawActiveIngredient ? (
+                    <Link href={`/${lang}/active-ingredients/${encodeURIComponent(rawActiveIngredient)}`} className="premium-card rounded-3xl p-4 transition hover:-translate-y-0.5">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                      <div className="mt-3 wrap-anywhere text-base font-semibold text-zinc-950 dark:text-white">{activeIngredient || rawActiveIngredient}</div>
+                    </Link>
+                  ) : (
+                    <div className="premium-card rounded-3xl p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                      <div className="mt-3 text-base font-semibold text-zinc-950 dark:text-white">-</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <aside className="space-y-4">
                 {imageUrl ? (
                   <ImageLightbox
                     src={imageUrl}
                     alt={drugName}
                     lang={lang}
-                    className="mt-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
-                    imgClassName="h-48 w-full object-contain p-3 sm:h-56"
+                    className="premium-card overflow-hidden rounded-[30px] p-3 text-left"
+                    imgClassName="h-64 w-full object-contain p-4"
                   />
-                ) : null}
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{drugName}</h1>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {t(lang, "idLabel")}: {drug.remoteId}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
-                  <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{drug.price || "-"}</div>
-                </div>
-                {rawCompany ? (
-                  <Link
-                    href={`/${lang}/companies/${encodeURIComponent(rawCompany)}`}
-                    className="block rounded-2xl border border-zinc-200 bg-zinc-50 p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-black/40 dark:hover:border-zinc-600"
-                  >
-                    <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                    <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                      {company || rawCompany}
-                    </div>
-                  </Link>
                 ) : (
-                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
-                    <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                    <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                  <div className="premium-card flex h-64 items-center justify-center rounded-[30px]">
+                    <svg viewBox="0 0 24 24" className="h-14 w-14 text-zinc-300 dark:text-zinc-700" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <path d="M10.5 6.5 6.5 10.5a4 4 0 0 0 5.66 5.66l4-4A4 4 0 1 0 10.5 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M9 9 15 15" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </div>
                 )}
 
-                {rawActiveIngredient ? (
-                  <Link
-                    href={`/${lang}/active-ingredients/${encodeURIComponent(rawActiveIngredient)}`}
-                    className="block rounded-2xl border border-zinc-200 bg-zinc-50 p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-black/40 dark:hover:border-zinc-600"
-                  >
-                    <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                    <div className="mt-1 min-w-0 overflow-hidden text-ellipsis text-sm font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                      {activeIngredient || rawActiveIngredient}
+                <div className="ad-slot rounded-[30px] p-5">
+                  <div className="relative z-10">
+                    <div className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+                      {lang === "ar" ? "موضع إعلاني ثابت" : "Stable ad slot"}
                     </div>
-                  </Link>
-                ) : (
-                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/40">
-                    <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                    <div className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">-</div>
+                    <div className="mt-3 text-lg font-semibold text-zinc-950 dark:text-white">
+                      {lang === "ar" ? "مهيأ للربح مع تقليل القفز البصري" : "Monetization-ready with reduced layout shift"}
+                    </div>
+                    <div className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                      {lang === "ar"
+                        ? "يمكن استخدام هذا الموضع لإعلانات داخلية أو وحدات AdSense بحجم ثابت."
+                        : "This reserved area can host internal promotions or fixed-size AdSense units."}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
 
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-                <div className="text-sm font-semibold">{t(lang, "medicalDisclaimerTitle")}</div>
-                <div className="mt-1 text-xs leading-6">{t(lang, "medicalDisclaimerBody")}</div>
-              </div>
+                <div className="premium-card rounded-[28px] p-5 text-amber-950 dark:text-amber-100">
+                  <div className="text-sm font-semibold">{t(lang, "medicalDisclaimerTitle")}</div>
+                  <div className="mt-2 text-sm leading-7 text-amber-900/80 dark:text-amber-100/80">{t(lang, "medicalDisclaimerBody")}</div>
+                </div>
+              </aside>
             </div>
           </section>
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "basicInfo")}</h2>
-            <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-              {rawCompany ? (
-                <Link
-                  href={`/${lang}/companies/${encodeURIComponent(rawCompany)}`}
-                  className="block rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                >
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                    {company || rawCompany}
-                  </div>
-                </Link>
-              ) : (
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
-                  <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">-</div>
-                </div>
-              )}
-
-              {rawActiveIngredient ? (
-                <Link
-                  href={`/${lang}/active-ingredients/${encodeURIComponent(rawActiveIngredient)}`}
-                  className="block rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                >
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 min-w-0 overflow-hidden text-ellipsis font-semibold leading-6 text-zinc-950 wrap-anywhere dark:text-zinc-50">
-                    {activeIngredient || rawActiveIngredient}
-                  </div>
-                </Link>
-              ) : (
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
-                  <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">-</div>
-                </div>
-              )}
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
-                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.price || "-"}</div>
+          <section className="section-shell rounded-[30px] p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">{t(lang, "basicInfo")}</h2>
+              <div className="rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-zinc-600 dark:bg-white/6 dark:text-zinc-300">
+                {t(lang, "price")}: {drug.price || "-"}
               </div>
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t(lang, "idLabel")}</div>
-                <div className="mt-1 font-semibold text-zinc-950 dark:text-zinc-50">{drug.remoteId}</div>
+            </div>
+            <div className="mt-5 grid grid-cols-1 gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
+              <div className="premium-card rounded-[24px] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "company")}</div>
+                <div className="mt-3 wrap-anywhere text-base font-semibold text-zinc-950 dark:text-white">{company || "-"}</div>
+              </div>
+              <div className="premium-card rounded-[24px] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "activeIngredient")}</div>
+                <div className="mt-3 wrap-anywhere text-base font-semibold text-zinc-950 dark:text-white">{activeIngredient || "-"}</div>
+              </div>
+              <div className="premium-card rounded-[24px] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "price")}</div>
+                <div className="mt-3 text-base font-semibold text-zinc-950 dark:text-white">{drug.price || "-"}</div>
+              </div>
+              <div className="premium-card rounded-[24px] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{t(lang, "idLabel")}</div>
+                <div className="mt-3 text-base font-semibold text-zinc-950 dark:text-white">{drug.remoteId}</div>
               </div>
             </div>
           </section>
 
           {descriptionSections.length
-            ? descriptionSections.map((s, idx) => (
-                <section
-                  key={`${idx}-${s.title}`}
-                  className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{s.title}</h2>
-                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">{s.body}</div>
+            ? descriptionSections.map((section, index) => (
+                <section key={`${index}-${section.title}`} className="section-shell rounded-[30px] p-6">
+                  <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">{section.title}</h2>
+                  <div className="mt-4 whitespace-pre-wrap text-sm leading-8 text-zinc-700 dark:text-zinc-300">{section.body}</div>
                 </section>
               ))
             : null}
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-            <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "similarDrugs")}</h2>
+          <section className="section-shell rounded-[32px] p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">{t(lang, "similarDrugs")}</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-600 dark:text-zinc-300">{alternativesIntro}</p>
+              </div>
+              <div className="rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-zinc-600 dark:bg-white/6 dark:text-zinc-300">
+                {lang === "ar" ? `إجمالي الترشيحات: ${alternativesSorted.length}` : `Total suggestions: ${alternativesSorted.length}`}
+              </div>
+            </div>
 
             {alternativesSorted.length ? (
-              <div className="mt-4 space-y-6">
+              <div className="mt-6 space-y-7">
                 {cheaperAlternatives.length ? (
                   <div>
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "cheaperAlternatives")}</div>
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {cheaperAlternatives.slice(0, 24).map((d) => (
-                        <Link
-                          key={d.remoteId}
-                          href={`/${lang}/drug/${d.remoteId}`}
-                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                        >
-                          <div className="flex flex-row-reverse items-start gap-3">
-                            {(() => {
-                              const src = d.imageSourceUrl || d.imageLocalPath;
-                              const thumb = !src
-                                ? null
-                                : src.startsWith("http://") || src.startsWith("https://")
-                                  ? src
-                                  : src.startsWith("/")
-                                    ? src
-                                    : null;
-                              return thumb ? (
-                                <img
-                                  src={thumb}
-                                  alt={trSimilar(d.remoteId, "name", d.name)}
-                                  loading="lazy"
-                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
-                                />
-                              ) : (
-                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
-                              );
-                            })()}
+                    <div className="mb-3 text-sm font-semibold text-zinc-950 dark:text-white">{t(lang, "cheaperAlternatives")}</div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {cheaperAlternatives.slice(0, 12).map(renderAlternativeCard)}
+                    </div>
+                  </div>
+                ) : null}
 
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                                {trSimilar(d.remoteId, "name", d.name)}
-                              </div>
-                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
-                                </div>
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
-                                </div>
-                                <div>
-                                  {t(lang, "price")}: {d.price || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                {premiumAlternatives.length ? (
+                  <div>
+                    <div className="mb-3 text-sm font-semibold text-zinc-950 dark:text-white">
+                      {lang === "ar" ? "أفضل البدائل المطابقة" : "Best matching alternatives"}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {premiumAlternatives.slice(0, 12).map(renderAlternativeCard)}
                     </div>
                   </div>
                 ) : null}
 
                 {strictSameFormDifferentStrength.length ? (
                   <div>
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-                      {t(lang, "differentStrengthAlternatives")}
-                    </div>
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {strictSameFormDifferentStrength.slice(0, 24).map((d) => (
-                        <Link
-                          key={d.remoteId}
-                          href={`/${lang}/drug/${d.remoteId}`}
-                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                        >
-                          <div className="flex flex-row-reverse items-start gap-3">
-                            {(() => {
-                              const src = d.imageSourceUrl || d.imageLocalPath;
-                              const thumb = !src
-                                ? null
-                                : src.startsWith("http://") || src.startsWith("https://")
-                                  ? src
-                                  : src.startsWith("/")
-                                    ? src
-                                    : null;
-                              return thumb ? (
-                                <img
-                                  src={thumb}
-                                  alt={trSimilar(d.remoteId, "name", d.name)}
-                                  loading="lazy"
-                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
-                                />
-                              ) : (
-                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
-                              );
-                            })()}
-
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                                {trSimilar(d.remoteId, "name", d.name)}
-                              </div>
-                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
-                                </div>
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
-                                </div>
-                                <div>
-                                  {t(lang, "price")}: {d.price || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="mb-3 text-sm font-semibold text-zinc-950 dark:text-white">{t(lang, "differentStrengthAlternatives")}</div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {strictSameFormDifferentStrength.slice(0, 12).map(renderAlternativeCard)}
                     </div>
                   </div>
                 ) : null}
 
                 {otherAlternativesList.length ? (
                   <div>
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherAlternatives")}</div>
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {otherAlternativesList.slice(0, 24).map((d) => (
-                        <Link
-                          key={d.remoteId}
-                          href={`/${lang}/drug/${d.remoteId}`}
-                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                        >
-                          <div className="flex flex-row-reverse items-start gap-3">
-                            {(() => {
-                              const src = d.imageSourceUrl || d.imageLocalPath;
-                              const thumb = !src
-                                ? null
-                                : src.startsWith("http://") || src.startsWith("https://")
-                                  ? src
-                                  : src.startsWith("/")
-                                    ? src
-                                    : null;
-                              return thumb ? (
-                                <img
-                                  src={thumb}
-                                  alt={trSimilar(d.remoteId, "name", d.name)}
-                                  loading="lazy"
-                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
-                                />
-                              ) : (
-                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
-                              );
-                            })()}
-
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                                {trSimilar(d.remoteId, "name", d.name)}
-                              </div>
-                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
-                                </div>
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
-                                </div>
-                                <div>
-                                  {t(lang, "price")}: {d.price || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="mb-3 text-sm font-semibold text-zinc-950 dark:text-white">{t(lang, "otherAlternatives")}</div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {otherAlternativesList.slice(0, 12).map(renderAlternativeCard)}
                     </div>
                   </div>
                 ) : null}
 
                 {visibleOtherForms.length ? (
                   <div>
-                    <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(lang, "otherFormsAlternatives")}</div>
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {visibleOtherForms.slice(0, 24).map((d) => (
-                        <Link
-                          key={d.remoteId}
-                          href={`/${lang}/drug/${d.remoteId}`}
-                          className="group rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600"
-                        >
-                          <div className="flex flex-row-reverse items-start gap-3">
-                            {(() => {
-                              const src = d.imageSourceUrl || d.imageLocalPath;
-                              const thumb = !src
-                                ? null
-                                : src.startsWith("http://") || src.startsWith("https://")
-                                  ? src
-                                  : src.startsWith("/")
-                                    ? src
-                                    : null;
-                              return thumb ? (
-                                <img
-                                  src={thumb}
-                                  alt={trSimilar(d.remoteId, "name", d.name)}
-                                  loading="lazy"
-                                  className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-800 dark:bg-zinc-950"
-                                />
-                              ) : (
-                                <div className="h-12 w-12 flex-none rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-black/40" />
-                              );
-                            })()}
-
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-semibold text-zinc-950 group-hover:underline dark:text-zinc-50">
-                                {trSimilar(d.remoteId, "name", d.name)}
-                              </div>
-                              <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "company")}: {trSimilar(d.remoteId, "company", d.company || "-")}
-                                </div>
-                                <div className="wrap-anywhere break-words">
-                                  {t(lang, "activeIngredient")}: {trSimilar(d.remoteId, "activeIngredient", d.activeIngredient || "-")}
-                                </div>
-                                <div>
-                                  {t(lang, "price")}: {d.price || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="mb-3 text-sm font-semibold text-zinc-950 dark:text-white">{t(lang, "otherFormsAlternatives")}</div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {visibleOtherForms.slice(0, 12).map(renderAlternativeCard)}
                     </div>
                   </div>
                 ) : null}
               </div>
             ) : (
-              <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{t(lang, "noSimilar")}</div>
+              <div className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{t(lang, "noSimilar")}</div>
             )}
           </section>
         </div>
